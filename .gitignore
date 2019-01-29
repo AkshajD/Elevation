@@ -108,3 +108,9 @@ tmp_bak
 cache
 cache_bak
 *.swp
+
+# data directories
+CRISPR/data/offtarget/
+CRISPR/guideseq/guideseq*.txt
+CRISPR/guideseq/guideseq*.hdf5
+
