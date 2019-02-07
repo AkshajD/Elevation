@@ -1023,7 +1023,9 @@ def make_cfd_from_data(cfd_file_out=None, learn_options=None):
     return cfd_df
 
 def get_NBT_cfd(cfdtable):
+    # FIXME: FutureWarning: the 'parse_cols' keyword is deprecated, use 'usecols' instead
     d_mismatch = pandas.read_excel(cfdtable, index_col=[0, 1], sheetname="Mismatch", parse_cols=[0,1,5])
+    # FIXME: FutureWarning: the 'parse_cols' keyword is deprecated, use 'usecols' instead
     d_pam = pandas.read_excel(cfdtable, index_col=[0], sheetname="PAM", parse_cols=[0, 1])
     # remove the "GG columns"
     # d_pam = d_pam[d_pam.index != "GG"]
