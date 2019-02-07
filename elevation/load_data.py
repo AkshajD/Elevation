@@ -531,7 +531,7 @@ def load_guideseq(learn_options):
                 data = data_right_merge
                 assert data.shape[0] == guide_seq_full.shape[0] # only true for right join
 
-            # no--Mudrea doesn't do this
+            # no--Mudra doesn't do this
             #data_tmp = data.drop_duplicates(['30mer', '30mer_mut', "Num mismatches"])
 
             #filter out the two rows with "N" in inappropriate places
