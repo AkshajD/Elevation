@@ -442,7 +442,6 @@ def load_guideseq(learn_options):
         data = data.sort_values('GUIDE-SEQ Reads', ascending=False)
         # this causes us to lose a few points relative to when we were first working on this, in particular, from 402 to 396
         data = data.drop_duplicates(['30mer', '30mer_mut'], keep="first")
-        data = data.set_index(['30mer', '30mer_mut'], drop=False, verify_integrity=True)
 
         # FIXME: What does this comment mean?  Shape is still 396 here.
         # goes from 402 to 395
@@ -498,8 +497,6 @@ def load_guideseq(learn_options):
                 # not clear if this is needed.
             else:
                 raise Exception("Unknown guideseq_version %s" % learn_options.get('guideseq_version'))
-
-            guide_seq_full = guide_seq_full.set_index(['30mer', '30mer_mut'], drop=False, verify_integrity=False)
 
             # ---------------------------
             # debugging the drop from 396 to 369 (27 things), which is attributable to some things from the small guide seq
