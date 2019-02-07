@@ -32,11 +32,11 @@ def get_gene_sequence(gene_name):
 def get_or_compute(file, fargpair, force_compute=False):
     try:
         if os.path.exists(file) and not force_compute:
-            print "from get_or_compute reading cached pickle", file
+            print "util.py:get_or_compute() using pickle: ", file
             with open(file, 'rb') as f:
                 return pickle.load(f)
         else:
-            print "from get_or_compute recomputing pickle cache", file
+            print "util.py:get_or_compute() recomputing, not using pickle: ", file
     except Exception as e:
         # TODO: catch pickle failure error
         warn("Failed to load %s" % file)
