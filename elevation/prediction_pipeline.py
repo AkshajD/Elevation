@@ -25,6 +25,7 @@ import sklearn.pipeline
 import sklearn.preprocessing
 
 
+# FIXME: DeprecationWarning: The 'cachedir' parameter has been deprecated in version 0.12 and will be removed in version 0.14.  You provided "cachedir='/scratch/elevation/cache'", use "location='/scratch/elevation/cache'" instead.
 memory = Memory(cachedir=settings.cachedir, verbose=0)
 debug_base_model_predictions = False
 logging.info("prediction_pipeline loaded.")

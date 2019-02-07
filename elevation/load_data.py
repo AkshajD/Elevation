@@ -215,11 +215,19 @@ def load_cd33(learn_options={"left_right_guide_ind":[4,25,30]}):
         if learn_options["pam_pos_filter"]:
             data_full = data_full[(data_full["Protein Annotation"] <= 59.88) & (data_full["Protein Annotation"] >= 7.97)]
 
+        # FIXME:
+        #   FutureWarning: Sorting because non-concatenation axis is not aligned. A future version
+        #   of pandas will change to not sort by default.
+        #   To accept the future behavior, pass 'sort=False'.
+        #   To retain the current behavior and silence the warning, pass 'sort=True'.
         data = pandas.concat((data_filt, data_full), axis=0)
 
         elevation.model_comparison.check_seq_len(data, colname="WTSequence")
 
         # for backward compatiblity with previous file format above (Supplementary Table 8.xlsx)
+        # FIXME: SettingWithCopyWarning:
+        #     A value is trying to be set on a copy of a slice from a DataFrame
+        #     See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
         data['Position'][np.isnan(data['Position'])] = -1
         #data['Annotation'] = [str(data['Annotation'].values[i]) + ',' + str(int(data['Position'].values[i])) for i in range(data.shape[0])]
         for i, categ in enumerate(data["Category"]):
