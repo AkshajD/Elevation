@@ -443,6 +443,8 @@ def load_guideseq(learn_options):
         # this causes us to lose a few points relative to when we were first working on this, in particular, from 402 to 396
         data = data.drop_duplicates(['30mer', '30mer_mut'], keep="first")
         data = data.set_index(['30mer', '30mer_mut'], drop=False, verify_integrity=True)
+
+        # FIXME: What does this comment mean?  Shape is still 396 here.
         # goes from 402 to 395
 
         del data['Target_Sequence']
@@ -551,6 +553,8 @@ def load_guideseq(learn_options):
             ## remove perfect matches, and 7-matches
 
             data['GUIDE-SEQ Reads'] = data['GUIDE-SEQ Reads'].fillna(value=0)
+
+            # FIXME: Strange... They added "WTSequence" themselves and it hasn't been used (indirectly in merge?); see above.
             del data["WTSequence"]
 
             #del data["pos"]
