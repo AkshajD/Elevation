@@ -480,8 +480,9 @@ def load_guideseq(learn_options):
                 guide_seq_full["30mer_mut"] = guide_seq_full["30mer_mut"].apply(lambda x: x.upper())
             elif learn_options.get('guideseq_version') == 2:
                 # columns: '30mer', 'mismatches', 'chromosome', 'start', 'end', 'gene', '30mer_mut', 'strand'
-                print "reading guideseq_v2: %s" % settings.pj(settings.CRISPR_dir, 'guideseq/guideseq_unique_MM6_end0_lim999999999.hdf5')
-                guide_seq_full = pandas.read_hdf(settings.pj(settings.CRISPR_dir, 'guideseq/guideseq_unique_MM6_end0_lim999999999.hdf5'), 'allsites')
+                guide_seq_data = settings.pj(settings.CRISPR_dir, 'guideseq/guideseq_unique_MM6_end0_lim999999999.hdf5')
+                print "reading guideseq_v2: %s" % guide_seq_data
+                guide_seq_full = pandas.read_hdf(guide_seq_data, 'allsites')
                 guide_seq_full = guide_seq_full.rename(index=str, columns={'mismatches': 'Num mismatches'})
 
                 guide_seq_full["30mer_mut"] = guide_seq_full["30mer_mut"].apply(lambda x: x.upper())
