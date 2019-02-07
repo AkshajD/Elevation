@@ -459,8 +459,7 @@ def load_guideseq(learn_options):
                 # guide_seq_full['30mer_mut'].apply(lambda x: x[-2:]).unique()
                 guide_seq_full = guide_seq_full[~np.isnan(guide_seq_full.CCTop)]
 
-                # we haven't yet converted to uppercase, but that shouldn't matter if lowercase
-                # just represents mismatch
+                # we haven't yet converted to uppercase, but that shouldn't matter if lowercase just represents mismatch
                 guide_seq_full = guide_seq_full.drop_duplicates(['30mer_mut','Num mismatches'])
 
                 #guide_seq_file_base = "result"
@@ -472,8 +471,7 @@ def load_guideseq(learn_options):
                 guide_seq_full["30mer"] = guide_seq_full["30mer"].apply(lambda x: x[:-3] + "NGG")
                 guide_seq_full["30mer_mut"] = guide_seq_full["30mer_mut"].apply(lambda x: x.upper())
             elif learn_options.get('guideseq_version') == 2:
-                # columns:
-                # '30mer', 'mismatches', 'chromosome', 'start', 'end', 'gene', '30mer_mut', 'strand'
+                # columns: '30mer', 'mismatches', 'chromosome', 'start', 'end', 'gene', '30mer_mut', 'strand'
                 print "reading guideseq_v2: %s" % settings.pj(settings.CRISPR_dir, 'guideseq/guideseq_unique_MM6_end0_lim999999999.hdf5')
                 guide_seq_full = pandas.read_hdf(settings.pj(settings.CRISPR_dir, 'guideseq/guideseq_unique_MM6_end0_lim999999999.hdf5'), 'allsites')
                 guide_seq_full = guide_seq_full.rename(index=str, columns={'mismatches': 'Num mismatches'})
