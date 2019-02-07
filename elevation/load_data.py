@@ -478,7 +478,7 @@ def load_guideseq(learn_options):
 
                 guide_seq_full["30mer_mut"] = guide_seq_full["30mer_mut"].apply(lambda x: x.upper())
 
-                # we intent this to be similar to the CCTop isnan filter above (in version 1)
+                # we intend this to be similar to the CCTop isnan filter above (in version 1)
                 ag_gg_filter = guide_seq_full["30mer_mut"].apply(lambda x: x[-2:] == 'AG' or x[-2:] == 'GG')
                 guide_seq_full = guide_seq_full[ag_gg_filter]
 
