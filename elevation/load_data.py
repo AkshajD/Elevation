@@ -491,7 +491,7 @@ def load_guideseq(learn_options):
                 ag_gg_filter = guide_seq_full["30mer_mut"].apply(lambda x: x[-2:] == 'AG' or x[-2:] == 'GG')
                 guide_seq_full = guide_seq_full[ag_gg_filter]
 
-                guide_seq_full = guide_seq_full.drop_duplicates(['30mer_mut','Num mismatches'])
+                guide_seq_full = guide_seq_full.drop_duplicates(['30mer_mut','Num mismatches'], keep="first")
                 guide_seq_full["30mer"] = guide_seq_full["30mer"].apply(lambda x: x[:-3] + "NGG")
                 # not clear if this is needed.
             else:
