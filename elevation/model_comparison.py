@@ -55,7 +55,7 @@ def setup_elevation(test=False, order=1, learn_options=None, pam_audit=False, le
     learn_options['ignore_gene_level_for_inner_loop'] = True#False
 
     if learn_options['V'] == 'CD33':
-        data, Y, target_genes = elevation.load_data.load_cd33(learn_options)        
+        data, Y, target_genes = elevation.load_data.load_cd33(learn_options)
     elif learn_options['V'] == 'guideseq':
         data, Y, target_genes = elevation.load_data.load_guideseq(learn_options)
     elif learn_options['V'] == 'HsuZhang':
@@ -632,11 +632,11 @@ def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAA
         PAM e.g. 'GGA' means the PAM site is GGA
         NB. position is 1-based
     """
-        
+
     assert naive_bayes_combine==True, "only option right now, and have removed any ifs around it so won't even see it used"
     assert category is None, "haven't yet put in this param functionality"
     #np.array(['PAM','Mismatch', 'Insertion', 'Deletion'])
-    
+
     if model_file is None:
         #azimuth_saved_model_dir = os.path.join(os.path.dirname(elevation.__file__), 'saved_models')
         azimuth_saved_model_dir = r'saved_models'
@@ -665,42 +665,42 @@ def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAA
 
     unique_annot, str_to_int = get_unique_annot(decoupled=True)
     letters, positions = unique_annot
-        
+
     # DEBUG--feel free to delete this block
     #my_range = np.arange(0, 10)
     #pred0, nb_pred0, feature_names0 = score_offtarget(data.iloc[[0]].copy(), model, learn_options, positions, msg="regular_call_debug")
     #pred, nb_pred, feature_names = score_offtarget_many(data.iloc[my_range].copy(), model, learn_options, positions, msg="regular_call_debug")
     #import ipdb; ipdb.set_trace()
-    
+
     print "predict_elevation allocating", learn_options["num_proc"], 'cores'
-    N =  data.shape[0]             
+    N =  data.shape[0]
     num_blocks = int(np.floor(N/parallel_block_size) + 1*(N % parallel_block_size > 0)) # mod is for left-over if doesn't divide evenly
-    
+
     pool = multiprocessing.Pool(processes=learn_options["num_proc"])
-    jobs = []    
-    for iter in range(num_blocks):                                                
-        jobs.append(pool.apply_async(score_offtarget_many, (data, model, learn_options, positions, iter, parallel_block_size, N)))        
+    jobs = []
+    for iter in range(num_blocks):
+        jobs.append(pool.apply_async(score_offtarget_many, (data, model, learn_options, positions, iter, parallel_block_size, N)))
     pool.close()
     pool.join()
-    
+
     all_predictions = None
     all_predictions_ind = None
     feature_names = None
-    
-    for i, j in enumerate(jobs):                
-        pred, nb_pred, feature_names = j.get()        
+
+    for i, j in enumerate(jobs):
+        pred, nb_pred, feature_names = j.get()
         if all_predictions is None:
             all_predictions = nb_pred
-            all_predictions_ind = pred            
+            all_predictions_ind = pred
         else:
             all_predictions = np.concatenate((all_predictions, nb_pred), axis=0)
             all_predictions_ind = np.concatenate((all_predictions_ind, pred), axis=0)
 
-    pool.terminate()       
+    pool.terminate()
 
     return all_predictions, model, learn_options, data, feature_names, np.array(all_predictions_ind.tolist())
 
-# need this because if do this increments in the actual loop, the multiprocessing messes it up, and I 
+# need this because if do this increments in the actual loop, the multiprocessing messes it up, and I
 # can't get the Lock() to work. It's not super efficient, but hopefully efficient enough, esp if the paralle_block_size is
 # large enough
 def iteration_to_range(this_iter, parallel_block_size, N):
@@ -710,17 +710,17 @@ def iteration_to_range(this_iter, parallel_block_size, N):
     start_ind = 0
     iter = 0
     while start_ind < N:
-        end_ind = np.min((start_ind + parallel_block_size, N))        
-        my_range = np.arange(start_ind, end_ind)                        
+        end_ind = np.min((start_ind + parallel_block_size, N))
+        my_range = np.arange(start_ind, end_ind)
         if this_iter == iter:
             return my_range, start_ind, end_ind
-        start_ind = start_ind + parallel_block_size         
+        start_ind = start_ind + parallel_block_size
         iter += 1
     return None, None, None
 
 # to do several
 def score_offtarget_many(row_data_all, model, learn_options, positions, iter, parallel_block_size, N, verbose=True):
-    
+
     #----------------------------
     # this used to be outside of here, but multiprocessing was messing it up, so seeing if this fixes it-
     my_range, start_ind, end_ind = iteration_to_range(iter, parallel_block_size, N)
@@ -734,7 +734,7 @@ def score_offtarget_many(row_data_all, model, learn_options, positions, iter, pa
         msg_tmp = None
     row_data = row_data_all.iloc[my_range].copy()
     #----------------------------
-    
+
     N = row_data.shape[0]
     all_pred = None
     all_nb_pred = []
@@ -742,10 +742,10 @@ def score_offtarget_many(row_data_all, model, learn_options, positions, iter, pa
         pred, nb_pred, feature_names = score_offtarget(row_data.iloc[[i]], model, learn_options, positions)
         all_nb_pred.append(nb_pred)
         if all_pred is None:
-            all_pred = pred.copy()[:,None]            
+            all_pred = pred.copy()[:,None]
         else:
             all_pred = np.concatenate((all_pred, pred[:,None]), axis=1)
-            
+
     return all_pred.T, np.array(all_nb_pred, dtype='float64'), feature_names
 
 # This only takes data for a single guide-target pair
@@ -753,12 +753,12 @@ def score_offtarget(row_data, model, learn_options, positions, msg=None):
     all_predictions_ind = np.zeros(((len(np.unique(positions))+1),))*np.nan
     annots = row_data['Annotation'].copy()
     row_data = row_data.copy()
-    
+
     if msg is not None:
         print msg
 
     # note make loop only around the first part
-    for a in annots.values[0]:        
+    for a in annots.values[0]:
         row_data['Annotation'] = [a]
 
         if ":" in a:
@@ -779,8 +779,8 @@ def score_offtarget(row_data, model, learn_options, positions, msg=None):
         assert isinstance(pred, float)
         all_predictions_ind[int(pos)-1] = pred
 
-    if len(annots.values[0])==0:        
-        all_predictions_ind = np.ones(((len(np.unique(positions))+1),))                
+    if len(annots.values[0])==0:
+        all_predictions_ind = np.ones(((len(np.unique(positions))+1),))
         feature_names = None #ok for now as being called on cluster, may need to get this out at some point
 
     return all_predictions_ind, np.nanprod(all_predictions_ind), feature_names
