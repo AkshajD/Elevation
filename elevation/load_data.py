@@ -897,8 +897,12 @@ def load_HsuZang_data(version="hsu-zhang-both"):
 
 def load_HauesslerFig2(version):
 
+    csv_data_file  = settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction.tab')
+
     def merge_hauessler():
-        hdf5_data = pandas.read_hdf(settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction_MM6_end0_lim500000.hdf5'), 'allsites')
+        hdf5_data_file = settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction_MM6_end0_lim500000.hdf5')
+        hdf5_data = pandas.read_hdf(hdf5_data_file, 'allsites')
+
         new_data = {
             'otSeq': map(lambda x: x[0] + ',' + x[1], hdf5_data[['30mer', '30mer_mut']].values),
             'gene': hdf5_data['gene'],
@@ -935,7 +939,7 @@ def load_HauesslerFig2(version):
 
     print "loading hauessler version", version
     if version == 1:
-        data = pandas.read_csv(settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction.tab'), delimiter='\t')
+        data = pandas.read_csv(csv_data_file, delimiter='\t')
     elif version == 2:
         data = merge_hauessler()
 
