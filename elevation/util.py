@@ -37,7 +37,7 @@ def get_or_compute(file, fargpair, force_compute=False):
                 return pickle.load(f)
         else:
             print "util.py:get_or_compute() recomputing, not using pickle: ", file
-    except Exception as e:
+    except pickle.UnpicklingError as e:
         # TODO: catch pickle failure error
         warn("Failed to load %s" % file)
         warn("Recomputing. This may take a while...")
