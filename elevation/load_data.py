@@ -23,9 +23,9 @@ from elevation import settings
 def load_ben_guideseq(datdir=r'\\nerds5\compbio_storage\CRISPR.offtarget\ben_guideseq', learn_options=None):
     assert learn_options is not None
     learn_options = copy.deepcopy(learn_options)
-  
+
     # file directly from Ben by email on 5/19/2017
-    # N.B. the "gecko" in the filenames comes from Ben's file, which he presumably named because the guides were 
+    # N.B. the "gecko" in the filenames comes from Ben's file, which he presumably named because the guides were
     # chosen from the gecko library.
     data_w_readcounts_file = os.path.join(datdir, "17-05-18 GUIDE-seq output.xlsx")
     data_from_dsnickfury_file = os.path.join(datdir, "17-04-01_gecko_GUIDEseq_sites_ordered_MM6_end0_lim500000.hdf5")
@@ -34,31 +34,31 @@ def load_ben_guideseq(datdir=r'\\nerds5\compbio_storage\CRISPR.offtarget\ben_gui
 
     # drop EMX1_1 because these are some sort of control he does everywhere
     data = data[data['sgRNA'] != "EMX1_1"]
-    
-    data['30mer'] = data['Target Sequence']    
-    data['30mer_mut'] = data['Off-Target Sequence']    
+
+    data['30mer'] = data['Target Sequence']
+    data['30mer_mut'] = data['Off-Target Sequence']
     data = data.set_index(['30mer', '30mer_mut'], drop=False, verify_integrity=True)
-    
+
     del data['Target Sequence']
     del data['Off-Target Sequence']
 
     #guide_seq_full_orig = pandas.read_hdf(data_from_dsnickfury_file, 'allsites')
     guide_seq_full = pandas.read_hdf(data_from_dsnickfury_file, 'allsites')
     #guide_seq_full = guide_seq_full.rename(index=str, columns={'mismatches': 'Num mismatches'})
-        
+
     # we intent this to be similar to the CCTop isnan filter above (in version 1)
     cctop_pams = ["AG", "GG"]
     ag_gg_filter = guide_seq_full["30mer_mut"].apply(lambda x: x[-2:] in cctop_pams)
     guide_seq_full = guide_seq_full[ag_gg_filter]
     # this reduces it from  around 2 million to 722,336
 
-    # Michael by email: There may very well be repeated regions in the genome, and the Y chrm especially so, this would yield repeats in 30mer, 30mer_mut pairs (and potentially quite a few)   
+    # Michael by email: There may very well be repeated regions in the genome, and the Y chrm especially so, this would yield repeats in 30mer, 30mer_mut pairs (and potentially quite a few)
     guide_seq_full = guide_seq_full.drop_duplicates(['30mer_mut','30mer'])
     # this drops it now from 722,336 to 560,562
 
     # all are AGG because that's what we give Michael's code
-    #unique_pams = np.unique(guide_seq_full["30mer"].apply(lambda x: x[-3:] )) 
-    # just to make it clearer, make them NGG    
+    #unique_pams = np.unique(guide_seq_full["30mer"].apply(lambda x: x[-3:] ))
+    # just to make it clearer, make them NGG
     guide_seq_full["30mer"] = guide_seq_full["30mer"].apply(lambda x: x[:-3] + "NGG")
 
     guide_seq_full = guide_seq_full.set_index(['30mer', '30mer_mut'], drop=False, verify_integrity=False)
@@ -69,7 +69,7 @@ def load_ben_guideseq(datdir=r'\\nerds5\compbio_storage\CRISPR.offtarget\ben_gui
     data_left_merge = data.merge(guide_seq_full, how="left", on=["30mer", "30mer_mut"], indicator=True)
     data_left_only = data_left_merge[data_left_merge['_merge'] == "left_only"]
     ommitted_guides = data_left_only[['30mer', '30mer_mut', 'GUIDE-seq read counts', 'Mismatches', 'sgRNA']]
-    ommitted_guide_pams = np.unique(ommitted_guides['30mer_mut'].apply(lambda x: x[-2:]))    
+    ommitted_guide_pams = np.unique(ommitted_guides['30mer_mut'].apply(lambda x: x[-2:]))
     for pam, j in enumerate(ommitted_guide_pams):
         assert pam not in cctop_pams, "offtarget=%s, guide=%s shouldn't appear here" % (ommitted_guides.iloc[j]["30mer_mut"], ommitted_guides.iloc[j]["30mer"])
 
@@ -78,28 +78,28 @@ def load_ben_guideseq(datdir=r'\\nerds5\compbio_storage\CRISPR.offtarget\ben_gui
     data_right_merge = data.merge(guide_seq_full, how="right", on=["30mer", "30mer_mut"], indicator=True)
     data = data_right_merge
     assert data.shape[0] == guide_seq_full.shape[0] # only true for right join
-        
+
     # to fill out zeros for all the ones only in the search file, but not found in the lab
     data['GUIDE-seq read counts'] = data['GUIDE-seq read counts'].fillna(value=0)
-    
+
     data['30mer'] = data.apply(lambda x: replace_NGG(x['30mer'], x['30mer_mut']), axis=1)
 
     # coerce data as needed for off-target prediction, based on Supp. Table 8 data
     categories = ['SomeTypeMutation' for x in range(len(data))]   # in CD33 training would be Mismatch/PAM, etc.
     data['Category'] = categories
-        
+
     data['Annotation'] = data.apply(lambda x : annot_from_seqs(x['30mer'], x['30mer_mut'], x['Mismatches'], warn_not_stop=True), axis=1)
 
     del data["_merge"]
 
     assert not np.any(np.isnan(data['GUIDE-seq read counts'].values)), "found nan read counts"
-    
+
     data = data.rename(columns={'GUIDE-seq read counts' : "GUIDE-SEQ Reads"})
 
     if learn_options["renormalize_guideseq"]:
-        #raise Exception("potentially make sure pam filtering happens only after this")                
+        #raise Exception("potentially make sure pam filtering happens only after this")
         data = renormalize_guideseq(data)
-    
+
     # for guides which had no positive read counts, these will get normalized to NaN, so convert them back to zeros:
     data["GUIDE-SEQ Reads"] = data["GUIDE-SEQ Reads"].fillna(value=0)
 
@@ -109,13 +109,13 @@ def load_ben_guideseq(datdir=r'\\nerds5\compbio_storage\CRISPR.offtarget\ben_gui
     target_genes = np.unique(data['sgRNA'])
 
     data['Annotation'] = data.apply(lambda x : annot_from_seqs(x['30mer'], x['30mer_mut']), axis=1)
-                    
+
     return data, Y, target_genes
 
 def load_HF_guideseq(learn_options):
 
-    
-    df_gs = pandas.read_excel(settings.pj(settings.offtarget_data_dir, 'HFguideseq/nature16526-s5.xlsx'), sheetname='included sites')    
+
+    df_gs = pandas.read_excel(settings.pj(settings.offtarget_data_dir, 'HFguideseq/nature16526-s5.xlsx'), sheetname='included sites')
     df_all = pandas.read_hdf(settings.pj(settings.offtarget_data_dir, 'HFguideseq/nature16526-s5_MM6_end0_lim500000.hdf5'))
 
     # rename
@@ -131,7 +131,7 @@ def load_HF_guideseq(learn_options):
     # we noticed that two off-targets are length 24, with the NGG at the end, so lets fix those here:
     # waiting to hear back from Ben to validate this assumption (5/31/2017)
     df_gs["30mer_mut"] = df_gs["30mer_mut"].apply(lambda x: x[1:] if len(x) > 23 else x)
-    
+
     assert len(np.unique(df_gs["Cells"])) == 1
 
     df_gs['20mer'] = df_gs["30mer"].apply(lambda x: x[0:20])
@@ -140,40 +140,40 @@ def load_HF_guideseq(learn_options):
     # should not do anything;
     #tmp = df_gs.drop_duplicates(['20mer', "30mer_mut"]) # same as df_gs, namely 251
     #tmp2 = df_gs.drop_duplicates(['30mer', "30mer_mut"])# same as df_gs, namely 251
-        
-    #Michael's code creates duplicates (we expect it to), but not sure if Haeussler's does.       
+
+    #Michael's code creates duplicates (we expect it to), but not sure if Haeussler's does.
     df_gs = df_gs.drop_duplicates(['20mer', '30mer_mut']) #even though we know from above this does nothing...
-    df_all = df_all.drop_duplicates(['20mer', '30mer_mut']) # from 105,530 to 88,033  
+    df_all = df_all.drop_duplicates(['20mer', '30mer_mut']) # from 105,530 to 88,033
 
     elevation.model_comparison.check_seq_len(df_gs, colname='30mer', expected_len=23)
     elevation.model_comparison.check_seq_len(df_gs, colname='30mer_mut', expected_len=23)
     elevation.model_comparison.check_seq_len(df_all, colname='30mer', expected_len=23)
     elevation.model_comparison.check_seq_len(df_all, colname='30mer_mut', expected_len=23)
-    
+
     # just for debugging; which rows are we missing from our search (not needed to return)
     #missing_gs_df = pandas.merge(df_gs, df_all, on=['20mer', '30mer_mut'], how='left', suffixes=['', '_right'], indicator=True)
     #missing_gs_df = missing_gs_df[missing_gs_df["_merge"] == "left_only"]
-        
+
     merge_df = pandas.merge(df_gs, df_all, on=['20mer', '30mer_mut'], how='right', suffixes=['_left', ''], indicator=True)
     # dsNickFury was run only on "wild-type", from "included_sites", EMX1-2, FANCF-2, FANCF-3, RUNX1-1, ZSCAN2, which should contain
     # precisely 53 rows in excel if filtered like this.
     tmp = merge_df[merge_df['GUIDE-SEQ Reads'] > 0]
-        
-    assert tmp.shape[0] == 53 
+
+    assert tmp.shape[0] == 53
     assert merge_df['GUIDE-SEQ Reads'].sum() == 18015
 
     assert merge_df.shape[0] == df_all.shape[0]
     merge_df['GUIDE-SEQ Reads'] = merge_df['GUIDE-SEQ Reads'].fillna(0)
-        
+
     elevation.model_comparison.check_seq_len(merge_df, colname='30mer', expected_len=23)
     elevation.model_comparison.check_seq_len(merge_df, colname='30mer_mut', expected_len=23)
-    
+
     # PAM FILTER (must come after normalization)
 
     # see loadGuideseq data--this originally came as a filter via CCTOp who only used NRG PAMs (R=A and G)
     ag_gg_filter = merge_df["30mer_mut"].apply(lambda x: x[-2:] == 'AG' or x[-2:] == 'GG')
     merge_df = merge_df[ag_gg_filter]
-        
+
     if learn_options["renormalize_guideseq"]:
         #raise NotImplementedError("look at other load gs data sets--make sure to do after PAM filterings")
         merge_df = renormalize_guideseq(merge_df)
@@ -528,7 +528,7 @@ def load_guideseq(learn_options):
                 # ensuring the PAMS are equal to merge on 20nt
                 # since guide equivalence is on just 20nts
                 assert np.unique(data['30mer'].apply(lambda x: x[-3:])) == np.unique(guide_seq_full['30mer'].apply(lambda x: x[-3:]))
-                
+
                 # this is just for debugging and is not needed for final result
                 data_left_merge = data.merge(guide_seq_full, how="left", on=["30mer", "30mer_mut", "Num mismatches"], indicator=True)
                 data_left_only = data_left_merge[data_left_merge['_merge'] == "left_only"]
@@ -738,19 +738,19 @@ def annot_from_seqs(guide, target, expectedNumMismatches=None, warn_not_stop=Fal
     i.e. p1, ... p20, N, G, G.  If there are no non-NGG PAM, one can give only a 20-mer,
     otherwise one shoudl give a 23mer, possibly with an "N" in position 21 which woul be ignored
 
-    Note that by python idexing, this means index 0-19 inclusive contain non-PAM sequence, and
+    Note that by python indexing, this means index 0-19 inclusive contain non-PAM sequence, and
     index 20-22 inclusive are the NGG
 
     Also note that we are using these terms interchangeably:
     "WT Sequence" ~ "guide" ~ "30mer"
     "Mutated Sequence" ~ "off-target sequence" ~ "30mer_mut"
 
-    Returns list of annotations of the form "G:A,3" (mismatch) and "CG" (PAM)
+    Returns a list of annotations of the form "G:A,3" (mismatch) and "CG" (PAM)
     from two sequence lengths, with a 1-based position relative to start of wt and mut
 
     N.B. expectedNumMismatches does not include non NGG PAM in the target
 
-    e.g. PAM region 20-22 (python idexing)
+    e.g.PAM region 20-22 (python indexing)
     target:  AGG
     guide:   AAA (there actually is no notion of a PAM in the guide, but some
                   data given to us includes these adjacent positions for context,
@@ -896,7 +896,7 @@ def load_HsuZang_data(version="hsu-zhang-both"):
     return data, Y, target_genes
 
 def load_HauesslerFig2(version):
-    
+
     def merge_hauessler():
         hdf5_data = pandas.read_hdf(settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction_MM6_end0_lim500000.hdf5'), 'allsites')
         new_data = {
@@ -906,19 +906,23 @@ def load_HauesslerFig2(version):
             'start': hdf5_data['start'],
             'end': hdf5_data['end'],
         }
-        new_df = pandas.DataFrame(new_data, columns=['otSeq', 'gene', 'chromosome', 'start', 'end'])                
-        org_df = pandas.read_csv(settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction.tab'), delimiter='\t')
-         
-        #Michael's code creates duplicates (we expect it to), but not sure if Haeussler's does.       
+
+        org_df = pandas.read_csv(csv_data_file, delimiter='\t')
+        new_df = pandas.DataFrame(new_data, columns=['otSeq', 'gene', 'chromosome', 'start', 'end'])
+
+        # Michael's code creates duplicates (we expect it to), but not sure if Haeussler's does.
         new_df['otSeq_tmp'] = new_df['otSeq'].apply(lambda x: '%s,%s' % (x[0:20], x[24:]))
         org_df['otSeq_tmp'] = org_df['otSeq'].apply(lambda x: '%s,%s' % (x[0:20], x[24:]))
         new_df = new_df.drop_duplicates(['otSeq_tmp'])
         org_df = org_df.drop_duplicates(['otSeq_tmp', 'readFraction'])
 
-        # this effectively assigns, if possible, a readFraction to everything in Michael's search (after dropping duplicates)
-        # for those that don't have a value, next they are filled with 0.
-        # in principle, this means if michael's search doesn't find all the non-zeros in Haeussler's original file,
-        # we could lose some guides, but we know that the total readFraction stays the same, so it seems to be fine
+        # This effectively assigns, if possible, a readFraction to everything in Michael's search
+        # (after dropping duplicates) for those that don't have a value, next they are zero-filled.
+        #
+        # In principle, this means if Michael's search doesn't find all the non-zeros in Haeussler's
+        # original file, we could lose some guides, but we know that the total readFraction stays
+        # the same, so it seems to be fine.
+
         final_df = pandas.merge(new_df, org_df, on='otSeq_tmp', how='left', suffixes=['', '_right'])
 
         del final_df['otSeq_right']
@@ -942,7 +946,7 @@ def load_HauesslerFig2(version):
     elevation.model_comparison.check_seq_len(data, colname='30mer_mut', expected_len=23)
 
     # assert data.shape[0] == 26052
-    #assert data['wasValidated'].sum() == 154
+    # assert data['wasValidated'].sum() == 154
 
     assert np.allclose(data['readFraction'].sum(), 6.74119043336)
     # not sure where this came from
@@ -952,15 +956,13 @@ def load_HauesslerFig2(version):
     ag_gg_filter = data["30mer_mut"].apply(lambda x: x[-2:] == 'AG' or x[-2:] == 'GG')
     data = data[ag_gg_filter]
     assert np.allclose(data['readFraction'].sum(), 6.6659440001416188)
-    
 
     target_genes = annotate_etc(data)
     return data, data['wasValidated'], data['readFraction']
 
-
 def annotate_df(df, colguide="30mer", coltarg="30mer_mut", check_for_empty_annot=False):
     N = df.shape[0] # number of rows
-    all_annotations = []#np.array(N)
+    all_annotations = [] # np.array(N)
     for i in range(N):
         annotations = []
         guide_seq = df[colguide].iloc[i]
@@ -968,16 +970,18 @@ def annotate_df(df, colguide="30mer", coltarg="30mer_mut", check_for_empty_annot
         assert len(guide_seq)==len(offtarg_seq), "should be same size"
 
         annotations = annot_from_seqs(guide_seq, offtarg_seq)
+
         if check_for_empty_annot and not annotations:
             raise Exception("found empty annotation")
+
         all_annotations.append(annotations)
 
     return all_annotations
 
 def annotate_etc(data, colguide="30mer", coltarg="30mer_mut"):
-    N = data.shape[0] # number of rows
-    # length of sequences
-    M = len(data[colguide].values[0]) 
+    N = data.shape[0]                 # number of rows
+    M = len(data[colguide].values[0]) # length of sequences
+
     all_annotations = annotate_df(data, colguide, coltarg)
 
     data["Annotation"] = all_annotations
@@ -1080,7 +1084,6 @@ def checkfor_pam_mismatch(pos=20):
 
     return
 
-
 def load_cd33_plus_hsuzhangsingle():
     """
     to combine data sets, need to do a rank transformation, the result of which is in column 'Yranks'
@@ -1141,7 +1144,7 @@ def load_hauessler_minus_guideseq(learn_options=None):
         "reload guideseq": False,
         "renormalize_guideseq": False
     })
-    
+
     data_h, Y1, Y2 = load_HauesslerFig2(learn_options['haeussler_version'])
     data_g, Y, target_genes = load_guideseq(learn_options)
 
@@ -1150,7 +1153,7 @@ def load_hauessler_minus_guideseq(learn_options=None):
                     "readFraction", "20mer"]
 
     # right now only v2 has DNAse and only DNAse needs chr start and end so we are enforcing
-    # this               
+    # this
     if learn_options['haeussler_version'] == 2 and learn_options['guideseq_version'] == 2:
         cols_to_keep.extend(['chromosome', 'start', 'end'])
 
@@ -1170,7 +1173,7 @@ def load_hauessler_minus_guideseq(learn_options=None):
     if learn_options['haeussler_version'] == 2 and learn_options['guideseq_version'] == 2:
         rename_dict['chromosome_x'] =  'chromosome'
         rename_dict['start_x'] = 'start'
-        rename_dict['end_x'] = 'end' 
+        rename_dict['end_x'] = 'end'
 
     data_h_left_g.rename(columns=rename_dict, inplace=True)
     data_h_left_g = data_h_left_g[cols_to_keep]
