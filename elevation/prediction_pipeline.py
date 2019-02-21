@@ -473,7 +473,7 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
                 #y_transf2 = st.boxcox(y[ind_keep2] - y[ind_keep2].min() + 0.001)[0]
                 #y_transf2 = y[ind_keep2]
 
-                print "train data set size is N=%d" % len(y_transf)
+                sys.stderr.write("train data set size is N=%d" % len(y_transf) + os.linesep)
                 clf.fit(X[ind_keep], y_transf)
                 #clf2.fit(X[ind_keep2], y_transf2)
                 #clf.fit(X_keep, tmpy)

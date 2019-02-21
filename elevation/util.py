@@ -1,3 +1,4 @@
+import sys
 import math
 import os, pickle
 import random
@@ -32,11 +33,11 @@ def get_gene_sequence(gene_name):
 def get_or_compute(file, fargpair, force_compute=False):
     try:
         if os.path.exists(file) and not force_compute:
-            print "util.py:get_or_compute() using pickle: ", file
+            sys.stderr.write("util.py:get_or_compute() using pickle: " + file + os.linesep)
             with open(file, 'rb') as f:
                 return pickle.load(f)
         else:
-            print "util.py:get_or_compute() recomputing, not using pickle: ", file
+            sys.stderr.write("util.py:get_or_compute() recomputing, not using pickle: " + file + os.linesep)
     except pickle.UnpicklingError as e:
         # TODO: catch pickle failure error
         warn("Failed to load %s" % file)

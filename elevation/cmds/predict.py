@@ -1,3 +1,4 @@
+import os
 import sys
 import io
 import time
@@ -48,7 +49,8 @@ class Predict(Command):
             self.preds_guideseq = self.get_preds_guideseq()
             self.cd33_data = self.get_cd33()
             self.calibration_models = self.get_calibrated()
-            print "Time spent loading pickles: ", time.time() - start
+            pickle_time = time.time() - start
+            sys.stderr.write("Time spent loading pickles: " + str(pickle_time) + os.linesep)
 
     def execute(self, wildtype, offtarget):
         start = time.time()
@@ -63,11 +65,12 @@ class Predict(Command):
         for i in range(len(wt)):
             annot.append(elevation.load_data.annot_from_seqs(wt[i], mut[i]))
         df['Annotation'] = annot
-        print "Time spent parsing input: ", time.time() - start
+        annotation_time = time.time() - start
+        sys.stderr.write("Time spent parsing input: " + str(annotation_time) + os.linesep)
 
-        base_model_time = time.time()
         nb_pred, individual_mut_pred = elevation.prediction_pipeline.predict(self.base_model, df, self.learn_options)
-        print "Time spent in base model predict(): ", time.time() - base_model_time
+        base_model_time = time.time() - annotation_time
+        sys.stderr.write("Time spent in base model predict(): " + str(base_model_time) + os.linesep)
 
         start = time.time()
         pred = pp.stacked_predictions(df, individual_mut_pred,
@@ -76,7 +79,8 @@ class Predict(Command):
                                                      preds_guideseq=self.preds_guideseq,
                                                      prob_calibration_model=self.calibration_models,
                                                      models=['linear-raw-stacker', 'CFD'])
-        print "Time spent in stacked_predictions: ", time.time() - start
+        prediction_time = time.time() - start
+        sys.stderr.write("Time spent in stacked_predictions: " + str(prediction_time) + os.linesep)
 
         # pred = {'linear-raw-stacker': [...], 'CFD': [...]}
         return pred
