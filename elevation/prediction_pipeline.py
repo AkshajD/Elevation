@@ -138,8 +138,8 @@ def load_guideseq(learn_options, filterPAMs=False, subsample_zeros=False):
     learn_options["V"] = "guideseq"; learn_options["left_right_guide_ind"] = [0,23,23]
     data, Y, target_genes = elevation.load_data.load_guideseq(learn_options)
 
-    if filterPAMs:      
-        raise Exception("should not be doing this here, rather when training the stacker, because some pickling happens outside of here")  
+    if filterPAMs:
+        raise Exception("should not be doing this here, rather when training the stacker, because some pickling happens outside of here")
         data = filter_PAMs(data)
 
     if subsample_zeros:
@@ -289,7 +289,7 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
             learn_options['cfd_table_file'] = settings.pj(settings.offtarget_data_dir, "STable 19 FractionActive_dlfc_lookup.xlsx")
 
         cfd = elevation.models.CFDModel(cfd_table_file=learn_options['cfd_table_file'])
-        
+
         predictions['CFD'] = cfd.predict(data["Annotation"].values, learn_options["num_proc"])[:, None]
 
     if 'product' in models:
@@ -373,24 +373,24 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
             Xtest = np.concatenate((Xtest, azimuth_score_test[:, None]), axis=1)
 
         if 'linear-raw-stacker' in models:
-                        
+
             dnase_type = [key for key in learn_options.keys() if 'dnase' in key]
-            assert len(dnase_type) <= 1            
+            assert len(dnase_type) <= 1
             if len(dnase_type) == 1:
                 dnase_type = dnase_type[0]
                 use_dnase = learn_options[dnase_type]
             else:
-                use_dnase = False                           
+                use_dnase = False
 
             if use_dnase:
-                
+
                 dnase_train = guideseq_data["dnase"].values
                 dnase_test = data["dnase"].values
                 assert dnase_train.shape[0] == X.shape[0]
                 assert dnase_test.shape[0] == Xtest.shape[0]
-                     
+
                 if dnase_type == 'dnase:default':
-                    # simple appending (Melih)     
+                    # simple appending (Melih)
                     X = np.concatenate((X, dnase_train[:, None]), axis=1)
                     Xtest = np.concatenate((Xtest, dnase_test[:, None]), axis=1)
 
@@ -400,16 +400,16 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
                     Xtest = np.concatenate((Xtest, Xtest*dnase_test[:, None]), axis=1)
 
                 elif dnase_type == 'dnase:only':
-                    # use only the dnase                                
+                    # use only the dnase
                     X = dnase_train[:, None]
-                    Xtest = dnase_test[:, None]                
+                    Xtest = dnase_test[:, None]
 
                 elif dnase_type == 'dnase:onlyperm':
-                    # use only the dnase                                
+                    # use only the dnase
                     pind = np.random.permutation(dnase_train.shape[0])
                     pind_test = np.random.permutation(dnase_test.shape[0])
                     X = dnase_train[pind, None]
-                    Xtest = dnase_test[pind_test, None]                
+                    Xtest = dnase_test[pind_test, None]
                 else:
                     raise NotImplementedError("no such dnase type: %s" % dnase_type)
 
@@ -420,17 +420,17 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
             if trained_model is None:
 
                 # subsample the data for more balanced training
-                                
+
                 ind_zero = np.where(y==0)[0]
-                ind_keep = (y!=0).flatten()  
-                nn = ind_keep.sum()              
+                ind_keep = (y!=0).flatten()
+                nn = ind_keep.sum()
                 # take every kth' zero
                 increment = int(ind_zero.shape[0]/float(nn))
                 ind_keep[ind_zero[::increment]] = True
 
                 #----- debug
                 #ind_zero = np.where(y==0)[0]
-                #ind_keep2 = (y!=0).flatten()                
+                #ind_keep2 = (y!=0).flatten()
                 #ind_keep2[np.random.permutation(ind_zero)[0:nn]] = True
                 #-----
 
@@ -446,27 +446,27 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
 
                 clf = sklearn.linear_model.LassoCV(cv=kfold, fit_intercept=True, normalize=(~normX),n_jobs=num_fold, random_state=learn_options['seed'])
                 #clf2 = sklearn.linear_model.LassoCV(cv=kfold2, fit_intercept=True, normalize=(~normX),n_jobs=num_fold, random_state=learn_options['seed'])
-                
+
                 if normX:
                     clf = sklearn.pipeline.Pipeline([['scaling', sklearn.preprocessing.StandardScaler()], ['lasso', clf]])
                     #clf2 = sklearn.pipeline.Pipeline([['scaling', sklearn.preprocessing.StandardScaler()], ['lasso', clf2]])
 
-                #y_transf = st.boxcox(y[ind_keep] - y[ind_keep].min() + 0.001)[0]                
-                
+                #y_transf = st.boxcox(y[ind_keep] - y[ind_keep].min() + 0.001)[0]
+
                 # scale to be between 0 and 1 first
                 y_new = (y - np.min(y)) / (np.max(y) - np.min(y))
-                #plt.figure(); plt.plot(y_new[ind_keep], '.'); 
-                y_transf = st.boxcox(y_new[ind_keep] - y_new[ind_keep].min() + 0.001)[0]                
-                
+                #plt.figure(); plt.plot(y_new[ind_keep], '.');
+                y_transf = st.boxcox(y_new[ind_keep] - y_new[ind_keep].min() + 0.001)[0]
+
                 # when we do renormalize, we konw that these values are mostly negative (see Teams on 6/27/2017),
-                # so lets just make them go entirely negative(?)                
+                # so lets just make them go entirely negative(?)
                 #y_transf = y_transf - np.max(y_transf)
-                
+
                 #plt.figure(); plt.plot(y_transf, '.'); #plt.title("w out renorm, w box cox, then making all negative"); plt.show()
                 #import ipdb; ipdb.set_trace()
 
 
-                #y_transf = np.log(y[ind_keep] - y[ind_keep].min() + 0.001)               
+                #y_transf = np.log(y[ind_keep] - y[ind_keep].min() + 0.001)
                 #y_transf = y[ind_keep]
 
                 # debugging
@@ -474,16 +474,16 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
                 #y_transf2 = y[ind_keep2]
 
                 print "train data set size is N=%d" % len(y_transf)
-                clf.fit(X[ind_keep], y_transf)                 
-                #clf2.fit(X[ind_keep2], y_transf2) 
-                #clf.fit(X_keep, tmpy) 
-                
+                clf.fit(X[ind_keep], y_transf)
+                #clf2.fit(X[ind_keep2], y_transf2)
+                #clf.fit(X_keep, tmpy)
+
                 #tmp = clf.predict(X)
                 #sp.stats.spearmanr(tmp[ind_keep],y_transf.flatten())[0]
                 #sp.stats.spearmanr(tmp[ind_keep], y[ind_keep])[0]
                 #sp.stats.spearmanr(tmp, y)[0]
                 #sp.stats.pearsonr(tmp[ind_keep],y_transf.flatten())[0]
-                                       
+
 
                 # clf.fit(X, y.flatten())
                 # clf.fit(X, y, sample_weight=weights)
@@ -814,8 +814,8 @@ def train_prob_calibration_model(cd33_data, guideseq_data, preds_guideseq, base_
 
     clf = sklearn.linear_model.LogisticRegression(fit_intercept=True, solver='lbfgs')
 
-    # fit the linear-raw-stacker (or whatever model is being calibrated) predictions on cd33 to the actual binary cd33 values    
-    clf.fit(X_guideseq[:, None], Y_bin)    
+    # fit the linear-raw-stacker (or whatever model is being calibrated) predictions on cd33 to the actual binary cd33 values
+    clf.fit(X_guideseq[:, None], Y_bin)
     y_pred = clf.predict_proba(X_guideseq[:, None])[:, 1]
     #y_pred = clf.predict_proba(X_guideseq[:, None])[:, 0]
 
@@ -936,15 +936,15 @@ def plot_spearman_with_different_weights(predictions, truth, weights, figsize=(1
             # normalize between 0 and 1
             assert np.min(weights_array) >= 0
             # force max value to be 1.0 so we can take sum as effective sample size
-            weights_array = weights_array / np.max(weights_array)            
+            weights_array = weights_array / np.max(weights_array)
             assert np.min(weights_array) >= 0 and np.max(weights_array) <= 1.0
             effective_sample_sizes[i] = np.sum(weights_array)
-            model_results.append(elevation.metrics.spearman_weighted(truth, predictions[model].flatten(), w=weights_array))            
+            model_results.append(elevation.metrics.spearman_weighted(truth, predictions[model].flatten(), w=weights_array))
         if plot:
             plt.plot(weights, model_results, 'o-', label=model)
         all_results[model] = model_results
-        
-    
+
+
     if plot:
         plt.legend(loc=0)
         plt.xlabel('weight')
@@ -974,7 +974,7 @@ def plot_spearman_with_different_weights_parallel(predictions, truth, weights,
             # normalize between 0 and 1
             assert np.min(weights_array) >= 0
             # force max value to be 1.0 so we can take sum as effective sample size
-            weights_array = weights_array / np.max(weights_array)            
+            weights_array = weights_array / np.max(weights_array)
             assert np.min(weights_array) >= 0 and np.max(weights_array) <= 1.0
             effective_sample_sizes[i] = np.sum(weights_array)
 
@@ -986,7 +986,7 @@ def plot_spearman_with_different_weights_parallel(predictions, truth, weights,
             #plt.plot(weights, model_results, 'o-', label=model)
             plt.semilogx(weights[keep_ind], np.array(model_results)[keep_ind], 'o-', label=model)
         all_results[model] = model_results
-        
+
     if plot:
         plt.legend(loc=0)
         plt.xlabel('weight')
