@@ -672,7 +672,7 @@ def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAA
     #pred, nb_pred, feature_names = score_offtarget_many(data.iloc[my_range].copy(), model, learn_options, positions, msg="regular_call_debug")
     #import ipdb; ipdb.set_trace()
 
-    print "predict_elevation allocating", learn_options["num_proc"], 'cores'
+    sys.stderr.write("predict_elevation allocating" + str(learn_options["num_proc"]) + "cores" + os.linesep)
     N =  data.shape[0]
     num_blocks = int(np.floor(N/parallel_block_size) + 1*(N % parallel_block_size > 0)) # mod is for left-over if doesn't divide evenly
 
@@ -726,10 +726,11 @@ def score_offtarget_many(row_data_all, model, learn_options, positions, iter, pa
     my_range, start_ind, end_ind = iteration_to_range(iter, parallel_block_size, N)
 
     if verbose:
-        print "start_range=%d, end_range=%d" % (start_ind, my_range[-1])
+        msg_tmp = "start_range=%d, end_range=%d" % (start_ind, my_range[-1])
+        sys.stderr.write(msg_tmp + os.linesep)
     if verbose and (iter % (10000/parallel_block_size)) == 0:
         msg_tmp = "predict_elevation: %0.2f perc. done (%d of %d using block_size=%d) " % (float(start_ind)/N*100, start_ind, N, parallel_block_size)
-        print msg_tmp
+        sys.stderr.write(msg_tmp + os.linesep)
     else:
         msg_tmp = None
     row_data = row_data_all.iloc[my_range].copy()

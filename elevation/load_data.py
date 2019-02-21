@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 import copy
 import warnings
@@ -937,7 +938,7 @@ def load_HauesslerFig2(version):
         assert np.allclose(org_df['readFraction'].sum(), final_df['readFraction'].sum())
         return final_df
 
-    print "loading hauessler version", version
+    sys.stderr.write("loading hauessler version " + str(version) + os.linesep)
     if version == 1:
         data = pandas.read_csv(csv_data_file, delimiter='\t')
     elif version == 2:
