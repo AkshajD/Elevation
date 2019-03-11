@@ -2,8 +2,10 @@ import os
 import sys
 import pandas
 
-# replace this with the location of your dsNickFury install
-DSNF_DIRECTORY = "/home/jake/repos/dsNickFury/dsNickFury3PlusOrchid"
+if os.environ.has_key('DSNF_DIRECTORY'):
+    DSNF_DIRECTORY = os.environ['DSNF_DIRECTORY']
+else:
+    DSNF_DIRECTORY = "/home/jake/repos/dsNickFury/dsNickFury3PlusOrchid"
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 os.chdir(DSNF_DIRECTORY)
