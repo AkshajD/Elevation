@@ -954,6 +954,7 @@ def load_HauesslerFig2(version):
     # assert data.shape[0] == 26052
     # assert data['wasValidated'].sum() == 154
 
+    # FIXME: Why do we care if the readFractions are all within this magic number?
     assert np.allclose(data['readFraction'].sum(), 6.74119043336)
     # not sure where this came from
     # assert np.allclose(data['readFraction'].sum(), 3.3623554844970402)
@@ -961,8 +962,12 @@ def load_HauesslerFig2(version):
     # see loadGuideseq data--this originally came as a filter via CCTOp who only used NRG PAMs (R=A and G)
     ag_gg_filter = data["30mer_mut"].apply(lambda x: x[-2:] == 'AG' or x[-2:] == 'GG')
     data = data[ag_gg_filter]
+
+    # FIXME: Why assert allclose() on the 'readFraction' sum above, then
+    #        again here? Just do it here after the AA and AG filter.
     assert np.allclose(data['readFraction'].sum(), 6.6659440001416188)
 
+    # FIXME: Return value not used; `annotate_etc` modifies data, however, so it does need to be called.
     target_genes = annotate_etc(data)
     return data, data['wasValidated'], data['readFraction']
 
