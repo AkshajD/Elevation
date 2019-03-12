@@ -900,6 +900,7 @@ def load_HauesslerFig2(version):
 
     csv_data_file  = settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction.tab')
 
+    # Helper for version 2 Hauessler data, from the HDF5 file.
     def merge_hauessler():
         hdf5_data_file = settings.pj(settings.offtarget_data_dir, 'Haeussler/fig2-crisporData_withReadFraction_MM6_end0_lim500000.hdf5')
         hdf5_data = pandas.read_hdf(hdf5_data_file, 'allsites')

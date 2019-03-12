@@ -510,6 +510,8 @@ def azimuth_featurize(data, learn_options):
 
     return feature_sets_azimuth
 
+# Check if all sequences in data are the expected length.
+# If length is None, simply check all are equal, regardless of the actual length.
 def check_seq_len(data, colname='30mer', expected_len=None):
     all_lens = data[colname].apply(len).values
     unique_lengths = np.unique(all_lens)
