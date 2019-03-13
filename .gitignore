@@ -114,3 +114,12 @@ CRISPR/data/offtarget/
 CRISPR/guideseq/guideseq*.txt
 CRISPR/guideseq/guideseq*.hdf5
 
+# uncompressed pickled data
+elevation/saved_models/aggregation_model.pkl
+tests/fixtures/aggregation_test.pkl
+tmp/base_model.pkl
+tmp/calibration_models.pkl
+tmp/cd33.pkl
+tmp/gspred.pkl
+tmp/guideseq_data.pkl
+tmp/hmg_data.pkl
