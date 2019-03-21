@@ -39,7 +39,6 @@ class Fit(Command):
         import elevation.prediction_pipeline
         reload(elevation.prediction_pipeline)
         from predict import Predict
-        # from fixtures import Fixtures
 
         print("Forcing re-computation of models using CRISPR repo %s" % settings.CRISPR_dir)
         p = Predict(init_models=False, learn_options_override=learn_options_override)
@@ -48,8 +47,6 @@ class Fit(Command):
         p.preds_guideseq = p.get_preds_guideseq(True)
         p.cd33_data = p.get_cd33(True)
         p.calibration_models = p.get_calibrated(True)
-        # print("Regenerating Fixtures.")
-        # Fixtures().execute()
         print("Models have been computed and saved. Please run py.test tests")
 
     @classmethod
@@ -58,7 +55,6 @@ class Fit(Command):
         parser = argparse.ArgumentParser()
         parser.add_argument('--crispr_repo_dir', default="", help="Specify path to CRISPR repository.")
         args = parser.parse_args()
-        # print "\n", "ARGS", args, "\n"
         return cls().execute(**vars(args))
 
 if __name__ == "__main__":
