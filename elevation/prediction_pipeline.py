@@ -725,7 +725,7 @@ def bootstrap_predictor(clf, Y_train, X_train, Y_test, X_test, replicates=100, p
 @memory.cache
 def train_final_model(learn_options=None):
     if learn_options is None:
-        learn_options = {    'num_proc': 10,
+        learn_options = {
                      'nuc_features_WT': False, 'include_pi_nuc_feat': False,
                      'annotation position one-hot': False,
                      'mutation_type' : False,
@@ -1042,7 +1042,7 @@ if __name__ == '__main__':
 
 
     np.random.seed(12345)
-    learn_options = {'num_proc': 10,
+    learn_options = {
     # 'replace_nan_with_base_pred': True,
                      'nuc_features_WT': False, 'include_pi_nuc_feat': False,
                      'annotation position one-hot': False,

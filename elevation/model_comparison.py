@@ -558,7 +558,9 @@ def featurize_data_elevation(data, learn_options, verbose=False):
 
     if learn_options.has_key('include_azimuth_score') and learn_options['include_azimuth_score'] is not None:
         # this is very expensive to compute from scratch (an hour or more on one CPU)
-        azimuth_score, azimuth_mut_score, azimuth_delta_score = get_on_target_predictions(data,  score_list=learn_options['include_azimuth_score'])
+        azimuth_score,     \
+        azimuth_mut_score, \
+        azimuth_delta_score = get_on_target_predictions(data, score_list=learn_options['include_azimuth_score'])
         tmp_feature_sets = []
         if "WT" in learn_options['include_azimuth_score']:
             assert azimuth_score is not None
