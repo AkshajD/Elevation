@@ -205,7 +205,6 @@ class Predict(Command):
         parser.add_argument('--offtarget_column', help="Column containing offtarget sequences.")
         parser.add_argument('--delimiter', default=",", help="file delimiter.")
         args = parser.parse_args()
-        # print "\n", "ARGS", args, "\n"
         return cls.execute_file(**vars(args))
 
 if __name__ == "__main__":
