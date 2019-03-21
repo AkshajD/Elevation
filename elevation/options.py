@@ -13,6 +13,7 @@ learn_options = {
     "annotation_onehot" : True, # featurize like CFD
     "azimuth_feat" : None, # was: ["WT"]
     "azimuth_score_in_stacker": False,
+    "class_weight": None,
     "cv": "stratified",
     "fit_intercept" : True,
     "guide_seq_full": True,
@@ -22,13 +23,14 @@ learn_options = {
     "include_Tm": False,
     "include_azimuth_score": None, # All of them ["WT","MUT","DELTA"]
     "include_gene_position": False,
+    "include_pi_nuc_feat": False,
 #   "kde_normalize_guideseq": False,
     "left_right_guide_ind": [4,27,30], # 21-mer
     "models": ["AdaBoost"],
     "mutation_type" : False,
     "n_folds" : 10,
-    "normalize_features" : False, "class_weight": None,
-    "nuc_features_WT": False, "include_pi_nuc_feat": False,
+    "normalize_features" : False,
+    "nuc_features_WT": False,
     "num_proc": 28, # 1
     "order": 1,
     "phen_transform": "kde_cdf",

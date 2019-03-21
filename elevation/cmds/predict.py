@@ -73,12 +73,13 @@ class Predict(Command):
         sys.stderr.write("Time spent in base model predict(): " + str(base_model_time) + os.linesep)
 
         start = time.time()
-        pred = pp.stacked_predictions(df, individual_mut_pred,
-                                                     learn_options=self.learn_options,
-                                                     guideseq_data=self.guideseq_data,
-                                                     preds_guideseq=self.preds_guideseq,
-                                                     prob_calibration_model=self.calibration_models,
-                                                     models=['linear-raw-stacker', 'CFD'])
+        pred = pp.stacked_predictions(df,
+                                      individual_mut_pred,
+                                      learn_options=self.learn_options,
+                                      guideseq_data=self.guideseq_data,
+                                      preds_guideseq=self.preds_guideseq,
+                                      prob_calibration_model=self.calibration_models,
+                                      models=['linear-raw-stacker', 'CFD'])
         prediction_time = time.time() - start
         sys.stderr.write("Time spent in stacked_predictions: " + str(prediction_time) + os.linesep)
 
@@ -212,7 +213,7 @@ if __name__ == "__main__":
     
     sys.stdout = sys.__stdout__
     # initialize predictor
-    p = Predict(learn_options_override={'num_proc': 15}) # udpated (new) Hauessler & GUIDE-seq
+    p = Predict(learn_options_override={'num_proc': 15}) # updated (new) Hauessler & GUIDE-seq
     # p = Predict(learn_options_override={'num_proc': 30, 'guideseq_version': 1}) # old version of those data, for comparison
     
     #p.hmg_data = p.get_hmg_data()
