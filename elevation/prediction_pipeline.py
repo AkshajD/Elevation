@@ -35,35 +35,24 @@ logging.info("prediction_pipeline loaded.")
 
 
 @memory.cache
-def cross_validate_base_model(learn_options):
+def compute_model(learn_options, cross_validate=False):
+    options = {
+        'models': learn_options['models'],  # AdaBoost
+        'orders': [learn_options['order']], # 1
+        'adaboost_learning_rates': [0.1],
+        'adaboost_max_depths': [3],
+        'adaboost_num_estimators': [100],
+        'learn_options_set': {'final': learn_options},
+        'test': False,
+        'CV': cross_validate,
+        'set_target_fn': set_target_elevation,
+        'setup_function': setup_elevation,
+        'pam_audit': False,
+        'length_audit': False
+    }
+
     learn_options = copy.deepcopy(learn_options)
-    results, all_learn_options = mc.run_models(models=learn_options['models'], orders=[learn_options['order']], adaboost_learning_rates=[0.1],
-                                                adaboost_max_depths=[3], adaboost_num_estimators=[100],
-                                                learn_options_set={'final': learn_options},
-                                                test=False, CV=True, setup_function=setup_elevation,
-                                                set_target_fn=set_target_elevation, pam_audit=False, length_audit=False)
-
-    if debug_base_model_predictions:
-        y_true = results.values()[0][1][0][0]['dummy_for_no_cv']['raw']
-        y_pred = results.values()[0][1][0][1]['dummy_for_no_cv']
-        plt.figure()
-        plt.hexbin(y_true, y_pred)
-        plt.xlabel('True')
-        plt.ylabel('Predicted')
-
-    model = results.values()[0][3][0]
-    feature_names = np.array(results[results.keys()[0]][6], dtype=str)
-    return model, feature_names
-
-# @memory.cache
-def train_base_model(learn_options):
-    learn_options = copy.deepcopy(learn_options)
-    learn_options['cv'] = 'gene' # Defaults 'cv' = 'stratified'
-    results, all_learn_options = mc.run_models(models=learn_options['models'], orders=[learn_options['order']], adaboost_learning_rates=[0.1],
-                                                adaboost_max_depths=[3], adaboost_num_estimators=[100],
-                                                learn_options_set={'final': learn_options},
-                                                test=False, CV=False, setup_function=setup_elevation,
-                                                set_target_fn=set_target_elevation, pam_audit=False, length_audit=False)
+    results, all_learn_options = azmc.run_models(**options)
 
     if debug_base_model_predictions:
         y_true = results.values()[0][1][0][0]['dummy_for_no_cv']['raw']
@@ -77,6 +66,17 @@ def train_base_model(learn_options):
     model = results.values()[0][3][0]
     feature_names = np.array(results[results.keys()[0]][6], dtype=str)
     return model, feature_names
+
+@memory.cache
+def cross_validate_base_model(learn_options):
+    learn_options = copy.deepcopy(learn_options)
+    return compute_model(learn_options, cross_validate=True)
+
+# @memory.cache
+def train_base_model(learn_options):
+    learn_options = copy.deepcopy(learn_options)
+    learn_options['cv'] = 'gene' # Defaults 'cv' = 'stratified'
+    return compute_model(learn_options)
 
 def filter_PAMs_index(data, allowed_PAMs):
     assert allowed_PAMs in ['all', 'doench', 'none']
