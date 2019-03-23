@@ -643,7 +643,6 @@ def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAA
     #np.array(['PAM','Mismatch', 'Insertion', 'Deletion'])
 
     if model_file is None:
-        #azimuth_saved_model_dir = os.path.join(os.path.dirname(elevation.__file__), 'saved_models')
         azimuth_saved_model_dir = r'saved_models'
         model_name = 'final.2016-02-05_17_23_59.p'#'model_12.21.2015.GBRT.elevation.pickle'
         model_file = os.path.join(azimuth_saved_model_dir, model_name)
@@ -670,12 +669,6 @@ def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAA
 
     unique_annot, str_to_int = get_unique_annot(decoupled=True)
     letters, positions = unique_annot
-
-    # DEBUG--feel free to delete this block
-    #my_range = np.arange(0, 10)
-    #pred0, nb_pred0, feature_names0 = score_offtarget(data.iloc[[0]].copy(), model, learn_options, positions, msg="regular_call_debug")
-    #pred, nb_pred, feature_names = score_offtarget_many(data.iloc[my_range].copy(), model, learn_options, positions, msg="regular_call_debug")
-    #import ipdb; ipdb.set_trace()
 
     sys.stderr.write("predict_elevation allocating" + str(learn_options["num_proc"]) + "cores" + os.linesep)
     N =  data.shape[0]
@@ -1292,11 +1285,6 @@ if __name__ == '__main__':
                     results_naivebayes[fold, j] = ss.spearmanr(y[test].flatten(),  preds_naivebayes[test].flatten())[0]
 
                     print "[%d, %d]: Spearman R for fold: %.3f naive, %.3f stacker, %.3f naive-bayes, %.3f cfd" % (fold, j, results_naive[fold, j],results_stacker[fold, j], results_naivebayes[fold, j], results_cfd[fold, j])
-
-                #print "median Spearman r: %.3f naive, %.3f stacker" % (np.median(results_naive[:, j]),
-
-                #                                                       np.median(results_stacker[:, j]))
-                #print "[seed=%d] mean Spearman r: %.3f naive, %.3f stacker" % (j, np.mean(results_naive[:, j]), np.mean(results_stacker[:, j]))
 
                 y_per_fold = np.array(y_per_fold, dtype=float)
                 preds_per_fold_naive = np.array(preds_per_fold_naive, dtype=float)
