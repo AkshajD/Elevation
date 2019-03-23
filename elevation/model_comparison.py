@@ -432,7 +432,7 @@ def get_on_target_predictions(data, score_list):
     t0 = time.time()
     # for wild type guides
     if "WT" in score_list or "DELTA" in score_list:
-        if False:#os.path.isfile(wt_file):
+        if False: # os.path.isfile(wt_file):
             #print "loading up azimuth_score_arr from pickle"
             azimuth_score_df = pickle.load(open(wt_file, "rb"))
             azimuth_score_arr = np.array(azimuth_score_df.ix[data.index].values)
@@ -1044,12 +1044,11 @@ if __name__ == '__main__':
     # run from .\CRISPR using %run Elevation/model_comparison.py
 
     # classification vs. regression
-    # phen_transform = "binarize";      training_metric = "AUC"; models = ["logregL1"]
+    # phen_transform = "binarize";       training_metric = "AUC";       models = ["logregL1"]
     # phen_transform = "rank_transform"; training_metric = "spearmanr";
-    # phen_transform = "rescale"; training_metric = "spearmanr";
-    # phen_transform = "identity"; training_metric = "spearmanr";
+    # phen_transform = "rescale";        training_metric = "spearmanr";
+    # phen_transform = "identity";       training_metric = "spearmanr";
     phen_transform = "kde_cdf"; training_metric = "spearmanr";
-
 
     models = ['AdaBoost']# ['RandomForest']#["AdaBoost"]#["linreg","L2","L1", "AdaBoost"]
 
@@ -1227,15 +1226,15 @@ if __name__ == '__main__':
 
             results_naive = np.nan*np.zeros((n_folds, num_seed))
 
-            results_stacker = np.nan*np.zeros((n_folds, num_seed))
-            results_cfd = np.nan*np.zeros((n_folds, num_seed))
+            results_stacker    = np.nan*np.zeros((n_folds, num_seed))
+            results_cfd        = np.nan*np.zeros((n_folds, num_seed))
             results_naivebayes = np.nan*np.zeros((n_folds, num_seed))
 
-            results_naive_agg =    np.nan*np.zeros(num_seed)
-            results_stacker_agg =    np.nan*np.zeros(num_seed)
+            results_naive_agg   = np.nan*np.zeros(num_seed)
+            results_stacker_agg = np.nan*np.zeros(num_seed)
 
-            steiger_stack_nb = np.nan*np.zeros(num_seed)
-            steiger_stack_cfd = np.nan*np.zeros(num_seed)
+            steiger_stack_nb       = np.nan*np.zeros(num_seed)
+            steiger_stack_cfd      = np.nan*np.zeros(num_seed)
             steiger_naivebayes_cfd = np.nan*np.zeros(num_seed)
 
             for j, seed in enumerate(range(num_seed)):
@@ -1260,6 +1259,7 @@ if __name__ == '__main__':
                         normalize_feat = False
                         stacker_phen_transform = "identity" # "sqrt"
                         m_stacker.fit(preds_cd33_model[train], y[train], model=stack_model, normalize_feat=normalize_feat, phen_transform=stacker_phen_transform)
+
                     pred_stacker = m_stacker.predict(preds_cd33_model[test])
                     pred_naive = np.nanprod(preds_cd33_model[test], axis=1)[:,None]
 
@@ -1406,7 +1406,9 @@ if __name__ == '__main__':
         data['elevation'] = predictions
         data.to_csv(r'../../data/offtarget/SuppTable8_withPredicitions_mismatch.csv')
 
-        plt.figure(); plt.plot(np.sort(predictions),'.'); plt.title('predicted off-target vs. enumeration of training cases')
+        plt.figure()
+        plt.plot(np.sort(predictions),'.')
+        plt.title('predicted off-target vs. enumeration of training cases')
 
         spearman = azimuth.util.spearmanr_nonan(predictions, data['Day21-ETP'])[0]
         #  0.60122173263647094, barely higher than in CV (0.59), demonstrating no over-fitting
