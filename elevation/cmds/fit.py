@@ -42,7 +42,7 @@ class Fit(Command):
 
         print("Forcing re-computation of models using CRISPR repo %s" % settings.CRISPR_dir)
         p = Predict(init_models=False, learn_options_override=learn_options_override)
-        p.base_model = p.get_base_model(True)
+        p.base_model = p.get_base_model(True) # FIXME: Use keyword for clarify: force_compute=True
         p.guideseq_data = p.get_guideseq_data(True)
         p.preds_guideseq = p.get_preds_guideseq(True)
         p.cd33_data = p.get_cd33(True)

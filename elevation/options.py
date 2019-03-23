@@ -37,7 +37,7 @@ learn_options = {
     "post-process Platt": False,
     "reload guideseq": False,
     "renormalize_guideseq": True, # 6/30/2017 - per Jennifer, changed back to True after latest experiments
-    "seed": settings.default_random_seed,
+    "seed": settings.default_random_seed, # settings.default_random_seed is '12345'
     "testing_non_binary_target_name": "ranks",
     "training_metric": "spearmanr",
     "use_mut_distances": False,

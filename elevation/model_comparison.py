@@ -36,6 +36,7 @@ def set_target_elevation(learn_options, classification):
         learn_options['ground_truth_label'] = 'Day21-ETP'
 
     if classification:
+        # phen_transform defaults to `kde_cdf`
         assert learn_options['phen_transform']=="binarize", "need binarization for classification"
 
     return learn_options
@@ -650,7 +651,7 @@ def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAA
     if model is None:
         with open(model_file, 'rb') as f:
             model, learn_options, feature_names = pickle.load(f)
-        if model_file is None:
+        if model_file is None: # FIXME: Cannot happen, model_file is always set, just above.
             print "No model file specified, using default off-target model: %s", model_name
     else:
         model, learn_options = model

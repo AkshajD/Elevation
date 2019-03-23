@@ -4,7 +4,10 @@ import azimuth
 import joblib
 import logging
 from joblib import Memory
+
+# Provides `setup_elevation`, `set_target_elevation`, (Azimuth model_comparison) `azmc.run_models`
 from elevation.model_comparison import *
+
 import copy
 import scipy.stats as ss
 from sklearn.grid_search import ParameterGrid
@@ -55,7 +58,7 @@ def cross_validate_base_model(learn_options):
 # @memory.cache
 def train_base_model(learn_options):
     learn_options = copy.deepcopy(learn_options)
-    learn_options['cv'] = 'gene'
+    learn_options['cv'] = 'gene' # Defaults 'cv' = 'stratified'
     results, all_learn_options = mc.run_models(models=learn_options['models'], orders=[learn_options['order']], adaboost_learning_rates=[0.1],
                                                 adaboost_max_depths=[3], adaboost_num_estimators=[100],
                                                 learn_options_set={'final': learn_options},
@@ -78,6 +81,7 @@ def train_base_model(learn_options):
 def filter_PAMs_index(data, allowed_PAMs):
     assert allowed_PAMs in ['all', 'doench', 'none']
 
+    # FIXME: Assign twice?
     ind = np.zeros((data.shape[0]))
     ind = (ind==0)
 
