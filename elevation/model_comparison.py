@@ -1,6 +1,6 @@
 import azimuth
 import azimuth.predict as pd
-import azimuth.model_comparison as mc
+import azimuth.model_comparison as azmc
 import azimuth.local_multiprocessing
 import azimuth.load_data
 import azimuth.features.featurization as feat
@@ -47,7 +47,7 @@ def setup_elevation(test=False, order=1, learn_options=None, pam_audit=False, le
     assert length_audit==False, "doesn't handle anything else"
 
     np.random.seed(learn_options['seed'])
-    num_proc = mc.shared_setup(learn_options, order, test)
+    num_proc = azmc.shared_setup(learn_options, order, test)
 
     if test:
         learn_options["order"] = 1
@@ -487,7 +487,7 @@ def azimuth_featurize(data, learn_options):
     for option in learn_options_az.keys():
         if not learn_options_to_use.has_key(option):
             learn_options_to_use[option] = learn_options_az[option]
-    learn_options_to_use = mc.fill_learn_options(learn_options_az, learn_options_to_use)
+    learn_options_to_use = azmc.fill_learn_options(learn_options_az, learn_options_to_use)
 
     if learn_options_to_use.has_key("azimuth_gc_features") and learn_options_to_use["azimuth_gc_features"] is not None:
        if learn_options_to_use["azimuth_gc_features"]:
@@ -662,7 +662,7 @@ def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAA
         except:
             pass
 
-    learn_options = mc.override_learn_options(learn_options_override, learn_options)
+    learn_options = azmc.override_learn_options(learn_options_override, learn_options)
 
     if data is None:
         data = pandas.DataFrame(columns=[u'WTSequence', u'Annotation', 'Category'], data=zip(wt_seq30, mutation_details, category))
@@ -796,7 +796,7 @@ def save_final_model(filename, learn_options, order, shortname):
     learn_options['cv'] = "gene"
     learn_options["testing_non_binary_target_name"] = 'ranks'
     learn_options_set = {'final': learn_options}
-    results, all_learn_options = mc.run_models(models=models, orders=[order], adaboost_learning_rates=[0.1],
+    results, all_learn_options = azmc.run_models(models=models, orders=[order], adaboost_learning_rates=[0.1],
                                                 adaboost_max_depths=[3], adaboost_num_estimators=[100],
                                                 learn_options_set=learn_options_set,
                                                 test=False, CV=False, setup_function=setup_elevation,set_target_fn=set_target_elevation, pam_audit=False, length_audit=False)
@@ -1378,14 +1378,14 @@ if __name__ == '__main__':
         learn_options_tmp['V'] = 'guideseq'
 
         learn_options_set = {date_stamp:learn_options_tmp}
-        results, all_learn_options = mc.run_models(models=models, orders=orders, adaboost_learning_rates=[0.1],
+        results, all_learn_options = azmc.run_models(models=models, orders=orders, adaboost_learning_rates=[0.1],
                                                 adaboost_max_depths=[3], adaboost_num_estimators=[100],
                                                 learn_options_set=learn_options_set,
                                                 test=False, CV=True, setup_function=setup_elevation,set_target_fn=set_target_elevation, pam_audit=False, length_audit=False)
         all_metrics, gene_names = azimuth.util.get_all_metrics(results, learn_options_set)
         azimuth.util.plot_all_metrics(all_metrics, gene_names, all_learn_options, save=True)
         # AB_or2_md3_lr0.10_n100_2015-12-21_17_48_36 spearmanr 0.592423433051
-        mc.pickle_runner_results(exp_name, results, all_learn_options, relpath=r"Elevation\results")
+        azmc.pickle_runner_results(exp_name, results, all_learn_options, relpath=r"Elevation\results")
         import ipdb; ipdb.set_trace()
 
     # make a call to the final model
@@ -1451,6 +1451,6 @@ if __name__ == '__main__':
             'left_right_guide_ind' : [4,27,30], #inds are relative to 30mer such that [0,30] gives 30mer
             'normalize_features' : False,   ## so far this is only for logistic regression(?)
             }
-        mc.save_final_model_V3(filename=model_file_azimuth, learn_options=learn_options, short_name=short_name,  pam_audit=False, length_audit=False)
+        azmc.save_final_model_V3(filename=model_file_azimuth, learn_options=learn_options, short_name=short_name,  pam_audit=False, length_audit=False)
 
         import ipdb; ipdb.set_trace()
