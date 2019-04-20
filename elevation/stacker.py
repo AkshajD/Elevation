@@ -24,12 +24,12 @@ class StackerFeat(object):
 
         # now make each feature interact with the counts:
         if False:
-            for key in f_dict.keys():
+            for key in list(f_dict.keys()):
                 if not (key=="count"):
                     f_dict[key + "_count"] = np.multiply(f_dict["f_count"], f_dict[key])
         self.ordered_keys = []
         f_concat = None
-        for key in f_dict.keys():
+        for key in list(f_dict.keys()):
             self.ordered_keys.append(key)
             dat = f_dict[key]
             if self.normalize_feat:

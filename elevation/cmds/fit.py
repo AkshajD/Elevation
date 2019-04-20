@@ -5,7 +5,7 @@ import sys
 import time
 import numpy as np
 
-from command_base import Command
+from .command_base import Command
 from elevation import settings
 
 
@@ -14,7 +14,7 @@ class Fit(Command):
     def execute(self, crispr_repo_dir="", learn_options_override=None, force_rebuild=False):
         if crispr_repo_dir:
             if not os.path.exists(crispr_repo_dir):
-                print("%s not found. Exiting." % crispr_repo_dir)
+                print(("%s not found. Exiting." % crispr_repo_dir))
                 sys.exit(1)
             settings.update_CRISPR(crispr_repo_dir)
 
@@ -24,11 +24,11 @@ class Fit(Command):
             shutil.rmtree(settings.cachedir)
             os.mkdir(settings.cachedir)
         else:
-            user_input = raw_input('Existing models may need to be removed. Delete contents of '
+            user_input = input('Existing models may need to be removed. Delete contents of '
                                    '%s and %s? (yes/no):' % (settings.tmpdir, settings.cachedir))
 
             if user_input != "yes" and user_input != "no":
-                print("unrecognized input %s. Exiting." % user_input)
+                print(("unrecognized input %s. Exiting." % user_input))
                 return
             if user_input == "yes":
                 shutil.rmtree(settings.tmpdir)
@@ -38,9 +38,9 @@ class Fit(Command):
 
         import elevation.prediction_pipeline
         reload(elevation.prediction_pipeline)
-        from predict import Predict
+        from .predict import Predict
 
-        print("Forcing re-computation of models using CRISPR repo %s" % settings.CRISPR_dir)
+        print(("Forcing re-computation of models using CRISPR repo %s" % settings.CRISPR_dir))
         p = Predict(init_models=False, learn_options_override=learn_options_override)
         p.base_model = p.get_base_model(True) # FIXME: Use keyword for clarify: force_compute=True
         p.guideseq_data = p.get_guideseq_data(True)

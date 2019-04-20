@@ -5,7 +5,7 @@ import random
 import copy
 import time
 import numpy as np
-import settings
+from . import settings
 
 from warnings import warn
 
@@ -74,7 +74,7 @@ def execute_parallel(farg_pairs, num_procs=None, verbose=False):
     if num_procs is None:
         # leave 25%
         num_procs = math.ceil(cpu_count()*.75)
-        print "using %d procs in execute parallel" % num_procs
+        print("using %d procs in execute parallel" % num_procs)
 
     processes = []
     q = None
@@ -83,7 +83,7 @@ def execute_parallel(farg_pairs, num_procs=None, verbose=False):
 
     num_jobs = len(farg_pairs)
     if verbose:
-        print "execute_parallel num_procs=%d, num_jobs=%d" % (num_procs, num_jobs)
+        print("execute_parallel num_procs=%d, num_jobs=%d" % (num_procs, num_jobs))
 
     i = -1
     farg_pair = None
@@ -92,7 +92,7 @@ def execute_parallel(farg_pairs, num_procs=None, verbose=False):
         farg_pair = farg_pairs.pop(0)
         i += 1
         if verbose:
-            print "running job", i
+            print("running job", i)
 
         def target_func(*args, **kwargs):
             q.put((i, farg_pair[0](*args, **kwargs)))
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         v = random.randint(0, 1000)
         commands.append((test, (i, v)))
     a = execute_parallel(commands, num_procs=None, verbose=True)
-    b = map(lambda x: x[1], commands)
-    print a
-    print b
+    b = [x[1] for x in commands]
+    print(a)
+    print(b)
     assert tuple(a) == tuple(b)

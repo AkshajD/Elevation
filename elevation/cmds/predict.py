@@ -4,7 +4,7 @@ import io
 import time
 import numpy as np
 
-from command_base import Command
+from .command_base import Command
 from elevation import settings
 
 import pandas as pd
@@ -57,7 +57,7 @@ class Predict(Command):
         start = time.time()
         wt = wildtype
         mut = offtarget
-        df = pd.DataFrame(columns=['30mer', '30mer_mut', 'Annotation'], index=range(len(wt)))
+        df = pd.DataFrame(columns=['30mer', '30mer_mut', 'Annotation'], index=list(range(len(wt))))
         df['30mer'] = wt
         df['30mer_mut'] = mut
 
@@ -188,15 +188,15 @@ class Predict(Command):
         data = pd.read_csv(filename, delimiter=delimiter)
         wildtype, offtarget = data[[ontarget_column, offtarget_column]].values.T
         preds = cls().execute(wildtype, offtarget)
-        columns = preds.keys()
+        columns = list(preds.keys())
         num_items = data.shape[0]
-        preds = {k: v.flatten() for k, v in preds.iteritems()}
+        preds = {k: v.flatten() for k, v in preds.items()}
 
         sys.stdout = save_stdout
         sys.stderr = save_stderr
-        print delimiter.join(columns)
+        print(delimiter.join(columns))
         for i in range(num_items):
-            print delimiter.join(["%.8f" % preds[col][i] for col in columns])
+            print(delimiter.join(["%.8f" % preds[col][i] for col in columns]))
 
     @classmethod
     def cli_execute(cls):

@@ -19,19 +19,19 @@ import pandas
 import Bio.SeqUtils.MeltingTemp as Tm
 import Bio.SeqUtils as SeqUtil
 import Bio.Seq as Seq
-import cStringIO
+import io
 import sys
 import elevation
 import elevation.load_data
 import itertools
-from stacker import Stacker, StackerFeat
+from .stacker import Stacker, StackerFeat
 import multiprocessing
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 def set_target_elevation(learn_options, classification):
     # assert 'target_name' not in learn_options.keys() or learn_options['target_name'] is not None, "changed it to be automatically set here"
-    if 'target_name' not in learn_options.keys() or learn_options['target_name'] is None:
+    if 'target_name' not in list(learn_options.keys()) or learn_options['target_name'] is None:
         learn_options["target_name"] = 'Day21-ETP'
         learn_options['ground_truth_label'] = 'Day21-ETP'
 
@@ -67,14 +67,14 @@ def setup_elevation(test=False, order=1, learn_options=None, pam_audit=False, le
         raise Exception("invalid 'V' in learn options, V=%s" % learn_options['V'])
 
     # subset ind is used in cross validation when we want a subset of the data
-    if 'training_indices' in learn_options.keys() and learn_options['training_indices'] is not None:
+    if 'training_indices' in list(learn_options.keys()) and learn_options['training_indices'] is not None:
         training_indices = learn_options['training_indices']
         data = data.iloc[training_indices]
         Y = Y.iloc[training_indices]
 
-    print "featurizing data..."
+    print("featurizing data...")
     feature_sets, _garb = featurize_data_elevation(data, learn_options)
-    print "done."
+    print("done.")
 
     return Y, feature_sets, target_genes, learn_options, num_proc
 
@@ -124,7 +124,7 @@ def get_unique_annot(decoupled=False):
     # this gets saved in elevation/load_data.py: read_doench()
     # unique_annot = pickle.load(open(r"D:\Source\CRISPR\elevation\elevation\saved_models\unique_annot.p", "rb" ))
     all_2_nucl_sub = list(itertools.permutations(['A', 'T', 'C', 'G'], 2))
-    unique_annot = list(itertools.product(all_2_nucl_sub, range(1, 21)))
+    unique_annot = list(itertools.product(all_2_nucl_sub, list(range(1, 21))))
     unique_annot.extend(list(itertools.product('ATCG', repeat=2)))
     unique_annot = ['%s:%s,%d' % (u[0][0],u[0][1],u[1]) if len(u[0]) ==2 else '%s%s' % (u[0], u[1]) for u in unique_annot]
 
@@ -261,7 +261,7 @@ def one_hot_annotation(data, feature_sets):
         counts[:,2] = np.sum(annot_onehot[np.where(data['Day21-ETP'])[0]], axis=0)
         counts[:,0] = np.divide(counts[:,2], counts[:,1])
         ordered_col_names = np.empty(M, dtype='S10')
-        for key in str_to_int.keys(): ordered_col_names[str_to_int[key]] = key
+        for key in list(str_to_int.keys()): ordered_col_names[str_to_int[key]] = key
         df = pandas.DataFrame(counts.T, columns=ordered_col_names).T
         df.columns=['CFD','#total', '#active']
         df.to_csv(r"D:\Source\CRISPR\elevation\elevation\saved_models\our_cfd.csv")
@@ -369,7 +369,7 @@ def compute_mut_azimuth(data, model_file):
             assert np.all(seq[ind:(ind+20)]==mutseq)
             mutseq = seq[1:31]
             # stdout stuff is to suppress output from azimuth predict
-            save_stdout = sys.stdout; sys.stdout = cStringIO.StringIO()
+            save_stdout = sys.stdout; sys.stdout = io.StringIO()
             tmp_score = azimuth.model_comparison.predict(np.array([mutseq]), None, None, pam_audit=False, model_file=model_file_azimuth)
             sys.stdout = save_stdout
         elif len(mutseq)==20: #and pos!="PAM":  # mismatch
@@ -381,7 +381,7 @@ def compute_mut_azimuth(data, model_file):
             ind = newseq.find(mutseq)
             assert ind==5
             mutseq = newseq[1:31]
-            save_stdout = sys.stdout; sys.stdout = cStringIO.StringIO()
+            save_stdout = sys.stdout; sys.stdout = io.StringIO()
             tmp_score = azimuth.model_comparison.predict(np.array([mutseq]), None, None, model_file=model_file_azimuth)
             sys.stdout = save_stdout
         elif len(mutseq)==19: # deletion
@@ -392,7 +392,7 @@ def compute_mut_azimuth(data, model_file):
             assert len(newseq)==31
             mutseq1 = newseq[0:30]
             mutseq2 = newseq[1:31]
-            save_stdout = sys.stdout; sys.stdout = cStringIO.StringIO()
+            save_stdout = sys.stdout; sys.stdout = io.StringIO()
             tmp_score1 = azimuth.model_comparison.predict(np.array([mutseq1]), None, None, pam_audit=True, model_file=model_file_azimuth)
             tmp_score2 = azimuth.model_comparison.predict(np.array([mutseq2]), None, None, pam_audit=False, model_file=model_file_azimuth)
             sys.stdout = save_stdout
@@ -405,7 +405,7 @@ def compute_mut_azimuth(data, model_file):
             assert len(newseq)==33
             mutseq1 = newseq[1:31]
             mutseq2 = newseq[2:32]
-            save_stdout = sys.stdout; sys.stdout = cStringIO.StringIO()
+            save_stdout = sys.stdout; sys.stdout = io.StringIO()
             tmp_score1 = azimuth.model_comparison.predict(np.array([mutseq1]), None, None, pam_audit=False, model_file=model_file_azimuth)
             tmp_score2 = azimuth.model_comparison.predict(np.array([mutseq2]), None, None, pam_audit=True, model_file=model_file_azimuth)
             sys.stdout = save_stdout
@@ -413,7 +413,7 @@ def compute_mut_azimuth(data, model_file):
         else:
             raise Exception("shoudn't be here")
         azimuth_mut_score.append(np.mean(tmp_score))
-        if (i % 100 ==0): print "done %d of %d" % (i, len(thirtytwomer_arr))
+        if (i % 100 ==0): print("done %d of %d" % (i, len(thirtytwomer_arr)))
     return azimuth_mut_score
 
 def get_on_target_predictions(data, score_list):
@@ -475,7 +475,7 @@ def azimuth_featurize(data, learn_options):
     N, M = data.shape
     # print "found %d rows and %d feature colums to azimut_featurize" % (N, M)
     # ignore gene position
-    gene_position = pandas.DataFrame(columns=[u'Percent Peptide', u'Amino Acid Cut position'], data=zip(np.ones(N)*-1, np.ones(N)*-1))
+    gene_position = pandas.DataFrame(columns=['Percent Peptide', 'Amino Acid Cut position'], data=list(zip(np.ones(N)*-1, np.ones(N)*-1)))
 
     # load up learn_options needed (grab those we don't yet have)
     model_name = 'V3_model_nopos.pickle'
@@ -484,25 +484,25 @@ def azimuth_featurize(data, learn_options):
     with open(model_file, 'rb') as f:
         modelgarb, learn_options_az = pickle.load(f)
 
-    for option in learn_options_az.keys():
-        if not learn_options_to_use.has_key(option):
+    for option in list(learn_options_az.keys()):
+        if option not in learn_options_to_use:
             learn_options_to_use[option] = learn_options_az[option]
     learn_options_to_use = azmc.fill_learn_options(learn_options_az, learn_options_to_use)
 
-    if learn_options_to_use.has_key("azimuth_gc_features") and learn_options_to_use["azimuth_gc_features"] is not None:
+    if "azimuth_gc_features" in learn_options_to_use and learn_options_to_use["azimuth_gc_features"] is not None:
        if learn_options_to_use["azimuth_gc_features"]:
            learn_options_to_use["gc_features"] = True
        else:
             learn_options_to_use["gc_features"] = False
 
     #if not using long enough sequence, cannot use NGGX interaction feature
-    if learn_options_to_use.has_key('include_NGGX_interaction') and learn_options_to_use['include_NGGX_interaction']:
+    if 'include_NGGX_interaction' in learn_options_to_use and learn_options_to_use['include_NGGX_interaction']:
         raise Exception("need to check that this works properly with cd33 and guideseq data")
-    if learn_options_to_use.has_key('include_NGGX_interaction') and learn_options_to_use['include_NGGX_interaction'] and learn_options_to_use.has_key('left_right_guide_ind') and learn_options_to_use['left_right_guide_ind'] is not None:
-        pos_range = range(learn_options_to_use['left_right_guide_ind'][0],learn_options_to_use['left_right_guide_ind'][1])
+    if 'include_NGGX_interaction' in learn_options_to_use and learn_options_to_use['include_NGGX_interaction'] and 'left_right_guide_ind' in learn_options_to_use and learn_options_to_use['left_right_guide_ind'] is not None:
+        pos_range = list(range(learn_options_to_use['left_right_guide_ind'][0],learn_options_to_use['left_right_guide_ind'][1]))
         cando_NGGX_features = (27 in pos_range) and (24 in pos_range)
         if learn_options_to_use['include_NGGX_interaction'] and not cando_NGGX_features:
-            print "turning off NGGX feature because don't have those nucleotides"
+            print("turning off NGGX feature because don't have those nucleotides")
             learn_options_to_use['include_NGGX_interaction'] = False
 
     check_seq_len(data)
@@ -535,29 +535,29 @@ def featurize_data_elevation(data, learn_options, verbose=False):
     check_seq_len(data)
 
     if verbose:
-        print "Constructing features for elevation..."
+        print("Constructing features for elevation...")
     t0 = time.time()
 
     feature_sets = {}
 
-    if learn_options.has_key('azimuth_feat') and learn_options['azimuth_feat'] is not None:
+    if 'azimuth_feat' in learn_options and learn_options['azimuth_feat'] is not None:
         if "WT" in learn_options['azimuth_feat']:
             assert not learn_options["nuc_features_WT"], "should not use both nuc_features_WT and azimuth_feat_WT' as they are redundant"
             feature_sets_azimuth = azimuth_featurize(data, learn_options)
-            for set in feature_sets_azimuth.keys():
+            for set in list(feature_sets_azimuth.keys()):
                 feature_sets[set + "_WT"] = feature_sets_azimuth[set]
         if "MUT" in learn_options['azimuth_feat']:
             data_tmp = data.copy()
             data_tmp['30mer'] = data_tmp["30mer_mut"]
             data_tmp['30mer_mut'] = None
             feature_sets_azimuth = azimuth_featurize(data_tmp, learn_options)
-            for set in feature_sets_azimuth.keys():
+            for set in list(feature_sets_azimuth.keys()):
                 feature_sets[set + "_MUT"] = feature_sets_azimuth[set]
 
-    if learn_options.has_key('include_TM') and learn_options["include_Tm"]:
+    if 'include_TM' in learn_options and learn_options["include_Tm"]:
         feature_sets["Tm"] = Tm_feature(data)
 
-    if learn_options.has_key('include_azimuth_score') and learn_options['include_azimuth_score'] is not None:
+    if 'include_azimuth_score' in learn_options and learn_options['include_azimuth_score'] is not None:
         # this is very expensive to compute from scratch (an hour or more on one CPU)
         azimuth_score,     \
         azimuth_mut_score, \
@@ -577,33 +577,33 @@ def featurize_data_elevation(data, learn_options, verbose=False):
             tmp_feature_sets.append("az_delta_score")
         feature_sets['azimuth'] = data[tmp_feature_sets]
 
-    if learn_options.has_key('annotation_onehot') and learn_options['annotation_onehot']:
+    if 'annotation_onehot' in learn_options and learn_options['annotation_onehot']:
         one_hot_annotation(data, feature_sets)
 
-    if learn_options.has_key('annotation_decoupled_onehot') and learn_options['annotation_decoupled_onehot']:
+    if 'annotation_decoupled_onehot' in learn_options and learn_options['annotation_decoupled_onehot']:
         one_hot_annotation_decoupled(data, feature_sets, learn_options['annotation_decoupled_onehot'])
 
-    if learn_options.has_key('annotation position one-hot') and learn_options['annotation position one-hot']:
+    if 'annotation position one-hot' in learn_options and learn_options['annotation position one-hot']:
         one_hot_annotation_position(data, feature_sets)
 
-    if learn_options.has_key('annotation_letters_decoupled_onehot') and learn_options['annotation_letters_decoupled_onehot']:
+    if 'annotation_letters_decoupled_onehot' in learn_options and learn_options['annotation_letters_decoupled_onehot']:
         one_hot_annotation_letters_decoupled(data, feature_sets)
 
-    if learn_options.has_key('mutation_details') and learn_options['mutation_details']:
+    if 'mutation_details' in learn_options and learn_options['mutation_details']:
         # TODO: change this to use the actual N in NGG
         get_mutation_details(data, feature_sets, skip_pam_feat=learn_options["skip_pam_feat"], letpos_inter_ft=learn_options["letpos_inter_ft"], letpos_indep_ft=learn_options["letpos_indep_ft"])
 
-    if learn_options.has_key('nuc_features_WT') and learn_options["nuc_features_WT"]:
+    if 'nuc_features_WT' in learn_options and learn_options["nuc_features_WT"]:
         # TODO: change this to use the actual 30mer
         # spectrum kernels (position-independent) and weighted degree kernels (position-dependent)
         feat.get_all_order_nuc_features(data['WTSequence'], feature_sets, learn_options, learn_options["order"], max_index_to_use=20)
 
-    if learn_options.has_key('nuc_features_MUT') and learn_options["nuc_features_MUT"]:
+    if 'nuc_features_MUT' in learn_options and learn_options["nuc_features_MUT"]:
         raise Exception("not sure this makes sense--just encode the actual mutation as annotated")
         # spectrum kernels (position-independent) and weighted degree kernels (position-dependent)
         feat.get_all_order_nuc_features(data['MutatedSequence'], feature_sets, learn_options, learn_options["order"], max_index_to_use=20)
 
-    if learn_options.has_key('mutation_type') and learn_options['mutation_type']:
+    if 'mutation_type' in learn_options and learn_options['mutation_type']:
         enc = sklearn.preprocessing.OneHotEncoder()
         label_encoder = sklearn.preprocessing.LabelEncoder()
         label_encoder.fit(np.unique(data['Category'].values)) # [u'Deletion', u'Insertion', u'Mismatch', u'PAM']
@@ -663,28 +663,29 @@ def predict_elevation(data=None,
 
     if model is None:
         with open(model_file, 'rb') as f:
+            print("Model, learn_options and feature_names unpickled from: %s", model_file)
             model, learn_options, feature_names = pickle.load(f)
         if model_file is None: # FIXME: Cannot happen, model_file is always set, just above.
-            print "No model file specified, using default off-target model: %s", model_name
+            print("No model file specified, using default off-target model: %s", model_file)
     else:
         model, learn_options = model
 
     if force_zero_intercept:
         try:
             model.intercept_=0.0
-            print "forced model intercept to 0.0"
+            print("forced model intercept to 0.0")
         except:
             pass
 
     learn_options = azmc.override_learn_options(learn_options_override, learn_options)
 
     if data is None:
-        data = pandas.DataFrame(columns=[u'WTSequence', u'Annotation', 'Category'], data=zip(wt_seq30, mutation_details, category))
+        data = pandas.DataFrame(columns=['WTSequence', 'Annotation', 'Category'], data=list(zip(wt_seq30, mutation_details, category)))
 
     unique_annot, str_to_int = get_unique_annot(decoupled=True)
     letters, positions = unique_annot
 
-    sys.stderr.write("predict_elevation allocating" + str(learn_options["num_proc"]) + "cores" + os.linesep)
+    sys.stderr.write("predict_elevation allocating: " + str(learn_options["num_proc"]) + " cores" + os.linesep)
     N =  data.shape[0]
     num_blocks = int(np.floor(N/parallel_block_size) + 1*(N % parallel_block_size > 0)) # mod is for left-over if doesn't divide evenly
 
@@ -768,7 +769,7 @@ def score_offtarget(row_data, model, learn_options, positions, msg=None):
     row_data = row_data.copy()
 
     if msg is not None:
-        print msg
+        print(msg)
 
     # note make loop only around the first part
     for a in annots.values[0]:
@@ -814,8 +815,8 @@ def save_final_model(filename, learn_options, order, shortname):
                                                 adaboost_max_depths=[3], adaboost_num_estimators=[100],
                                                 learn_options_set=learn_options_set,
                                                 test=False, CV=False, setup_function=setup_elevation,set_target_fn=set_target_elevation, pam_audit=False, length_audit=False)
-    model = results.values()[0][3][0]
-    feature_names = np.array(results[results.keys()[0]][6], dtype=str)
+    model = list(results.values())[0][3][0]
+    feature_names = np.array(results[list(results.keys())[0]][6], dtype=str)
 
     with open(filename, 'wb') as f:
         pickle.dump((model, learn_options, feature_names), f, -1)
@@ -916,8 +917,8 @@ def feature_name_conversion_to_cfd(feature_names, reverse=False):
     rna_equiv = {'A':'A', 'G':'G', 'C':'C','T':'U', 'X':'X'}
 
     if reverse:
-        rna_comp = dict((v,k) for k,v in rna_comp.iteritems())
-        rna_equiv = dict((v,k) for k,v in rna_equiv.iteritems())
+        rna_comp = dict((v,k) for k,v in rna_comp.items())
+        rna_equiv = dict((v,k) for k,v in rna_equiv.items())
         pos = None
 
     feature_names_new = np.empty(feature_names.shape[0], dtype='S12')
@@ -1110,12 +1111,12 @@ if __name__ == '__main__':
         model_file_elevation = shortname +  "." + date_stamp + ".p"
         savemodel_filename = r"./saved_models/" + model_file_elevation
         model, feature_names = save_final_model(savemodel_filename, learn_options_cv, order=2, shortname=shortname)
-        print "done learning and saving final model"
+        print("done learning and saving final model")
 
 
         # also learn cfd model from scratch
         if True:
-            print "learning cfd from scratch"
+            print("learning cfd from scratch")
             cfd_file_out = r"saved_models\feature_weights_cfd_from_us.csv"
             cfd_us = make_cfd_from_data(cfd_file_out)
 
@@ -1126,7 +1127,7 @@ if __name__ == '__main__':
             assert np.all(cfd_them.index==cfd_us.index), "indexes dont have same values"
             if not np.all(cfd_them["Mismatch Type"]==cfd_us["Mismatch Type"]):
                 for j in range(len(cfd_them["Mismatch Type"])):
-                    print "them=%s, us=%s" % (cfd_them["Mismatch Type"].values[j], cfd_us["Mismatch Type"].values[j])
+                    print("them=%s, us=%s" % (cfd_them["Mismatch Type"].values[j], cfd_us["Mismatch Type"].values[j]))
 
                 raise Exception("annotations don't match")
 
@@ -1134,19 +1135,19 @@ if __name__ == '__main__':
             us = np.array(cfd_us['Percent-Active'].values, dtype=float)
             atol = 1e-6
             if not np.allclose(them, us, atol=atol):
-                print "CFD scores DO NOT match when computing from data vs. table from NBT SI"
+                print("CFD scores DO NOT match when computing from data vs. table from NBT SI")
                 plt.figure(); plt.plot(them, us, '.'); plt.show()
                 mydiff = np.abs(them-us)
                 badind = np.where(mydiff >= atol)[0]
                 for j in badind:
-                    print "%s: us[%d]=%f vs them[%d]=%f, US: numer=%s, denom=%s, " % (cfd_them.index[j], j, us[j], j, them[j], cfd_us.iloc[j]["# active guides"], cfd_us.iloc[j]["# guides"])
+                    print("%s: us[%d]=%f vs them[%d]=%f, US: numer=%s, denom=%s, " % (cfd_them.index[j], j, us[j], j, them[j], cfd_us.iloc[j]["# active guides"], cfd_us.iloc[j]["# guides"]))
                 import ipdb; ipdb.set_trace()
             else:
-                print "CFD scores MATCH when computing from data vs. table from NBT SI"
+                print("CFD scores MATCH when computing from data vs. table from NBT SI")
 
     # predict on guideseq data
     if True:
-        print "predicting on guideseq data"
+        print("predicting on guideseq data")
 
         #model_file_elevation = "elevation_CD33.AdaBoost.2016-05-03_11_41_08.p"
         #model_file_elevation = "elevation_CD33.logregL1.2016-05-12_16_34_17.p" # with intercept
@@ -1167,7 +1168,7 @@ if __name__ == '__main__':
         savemodel_filename = r".\saved_models\\" + model_file_elevation
 
         if not os.path.isfile(prediction_file):
-            print "getting predictions"
+            print("getting predictions")
             force_zero_intercept = False
 
             if learn_options_cv["V"] == "guideseq":
@@ -1192,7 +1193,7 @@ if __name__ == '__main__':
             #plt.figure(); plt.plot(cfd_us, cfd_them, '.')
 
         else:
-            print "loading saved predictions from %s" % prediction_file
+            print("loading saved predictions from %s" % prediction_file)
             [predictions, preds_cfd, preds_cfd_corrected, preds_naivebayes, guide_seq, data, feature_names, model, all_predictions_ind] = pickle.load(open(prediction_file, "rb"));
 
 
@@ -1298,7 +1299,7 @@ if __name__ == '__main__':
                     results_cfd[fold, j] = ss.spearmanr(y[test].flatten(),  preds_cfd[test].flatten())[0]
                     results_naivebayes[fold, j] = ss.spearmanr(y[test].flatten(),  preds_naivebayes[test].flatten())[0]
 
-                    print "[%d, %d]: Spearman R for fold: %.3f naive, %.3f stacker, %.3f naive-bayes, %.3f cfd" % (fold, j, results_naive[fold, j],results_stacker[fold, j], results_naivebayes[fold, j], results_cfd[fold, j])
+                    print("[%d, %d]: Spearman R for fold: %.3f naive, %.3f stacker, %.3f naive-bayes, %.3f cfd" % (fold, j, results_naive[fold, j],results_stacker[fold, j], results_naivebayes[fold, j], results_cfd[fold, j]))
 
                 y_per_fold = np.array(y_per_fold, dtype=float)
                 preds_per_fold_naive = np.array(preds_per_fold_naive, dtype=float)
@@ -1310,32 +1311,32 @@ if __name__ == '__main__':
 
                 # compare stacker to naive bayes
                 t2_stack, pv_stack, corr_naive, corr_stacker, corr01_stack = util.get_pval_from_predictions(preds_per_fold_naive, preds_per_fold_stacker,  y_per_fold, twotailed=False, method='steiger')
-                print "[seed=%d] Steiger stacker to naive: %1.1e" % (j, pv_stack)
+                print("[seed=%d] Steiger stacker to naive: %1.1e" % (j, pv_stack))
 
                 # compare stacker to cfd
                 t2_cfd, pv_cfd, corr_cfd, corr1, corr01_cfd = util.get_pval_from_predictions(preds_per_fold_cfd, preds_per_fold_stacker,  y_per_fold, twotailed=False, method='steiger')
-                print "[seed=%d] Steiger stacker to cfd: %1.1e" % (j, pv_cfd)
+                print("[seed=%d] Steiger stacker to cfd: %1.1e" % (j, pv_cfd))
 
                 # compare naive to cfd
                 t2, pv, corr0, corr1, corr01 = util.get_pval_from_predictions(preds_per_fold_cfd, preds_per_fold_naive,  y_per_fold, twotailed=False, method='steiger')
-                print "[seed=%d] Steiger naive to cfd: %1.1e" % (j, pv)
+                print("[seed=%d] Steiger naive to cfd: %1.1e" % (j, pv))
 
                 # compare naivebayes co cfd
                 t2, pv, corr0, corr_naivebayes, corr01 = util.get_pval_from_predictions(preds_per_fold_cfd, preds_per_fold_naivebayes,  y_per_fold, twotailed=False, method='steiger')
-                print "[seed=%d] Steiger naivebayes to cfd: %1.1e" % (j, pv)
+                print("[seed=%d] Steiger naivebayes to cfd: %1.1e" % (j, pv))
 
                 # compare cfd to cfd_corrected
                 t2, pv, corr0, corr_cfd_corrected, corr01 = util.get_pval_from_predictions(preds_per_fold_cfd, preds_per_fold_cfd_corrected,  y_per_fold, twotailed=False, method='steiger')
-                print "[seed=%d] Steiger cfd to cfd_corrected: %1.1e" % (j, pv)
+                print("[seed=%d] Steiger cfd to cfd_corrected: %1.1e" % (j, pv))
 
-                print "cfd spearman = %f" % corr_cfd
-                print "cfd_corrected spearman = %f" % corr_cfd_corrected
-                print "naive spearman = %f" % corr_naive
-                print "naivebayes spearman = %f" % corr_naivebayes
-                print "Stacker spearman = %f" % corr_stacker
-                print "--------------------------------------"
-                print "CFD pearson = %f" % ss.pearsonr(preds_per_fold_cfd, y_per_fold)[0]
-                print "Stacker pearson = %f" % ss.pearsonr(preds_per_fold_stacker.flatten(), y_per_fold)[0]
+                print("cfd spearman = %f" % corr_cfd)
+                print("cfd_corrected spearman = %f" % corr_cfd_corrected)
+                print("naive spearman = %f" % corr_naive)
+                print("naivebayes spearman = %f" % corr_naivebayes)
+                print("Stacker spearman = %f" % corr_stacker)
+                print("--------------------------------------")
+                print("CFD pearson = %f" % ss.pearsonr(preds_per_fold_cfd, y_per_fold)[0])
+                print("Stacker pearson = %f" % ss.pearsonr(preds_per_fold_stacker.flatten(), y_per_fold)[0])
 
                 import ipdb; ipdb.set_trace()
 
@@ -1409,7 +1410,7 @@ if __name__ == '__main__':
                           category=np.array(['PAM','Mismatch', 'Insertion', 'Deletion']),
                           model=None, model_file=None, pam_audit=False)
         # expected output: [ 1.57862003  0.43694794  0.69038882 -0.96302201]
-        print predictions
+        print(predictions)
 
     # predict on the entire training data set, and check correlation with LFC as sanity check
     if False:

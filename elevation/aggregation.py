@@ -1,6 +1,6 @@
 import numpy as np
 import sklearn.ensemble
-import cPickle as pickle
+import pickle as pickle
 
 from elevation import settings
 
@@ -14,7 +14,7 @@ def compute_stats_from_pred(pred, genic):
 
     names = []
     i = 0
-    for f in functions.keys():
+    for f in list(functions.keys()):
         if " " in f:
             args = int(f.split(' ')[0].replace('th', ''))
         else:
@@ -138,6 +138,6 @@ if __name__ == '__main__':
     with open(settings.agg_model_file) as fh:
         final_model, other = pickle.load(fh)
 
-    print get_aggregated_score_dnase(stacker, scores, dnase, genicValues, final_model)
+    print(get_aggregated_score_dnase(stacker, scores, dnase, genicValues, final_model))
 
     pass

@@ -69,13 +69,13 @@ class DnaseRegions(object):
             return self.min_value
 
     def compute_from_dataframe(self, df, chrom_col='chromosome', start_col='start', end_col='end'):
-        return np.array(map(lambda x: self.find(*x), df[[chrom_col, start_col, end_col]].values))
+        return np.array([self.find(*x) for x in df[[chrom_col, start_col, end_col]].values])
 
 if __name__ == "__main__":
     dnase_raw = DnaseRegions(r"\\nerds5\compbio_storage\CRISPR.offtarget\dnase\individual\wgEncodeRegDnaseUwA549Peak.txt", no_headers=True)
-    print dnase_raw.df.columns
+    print(dnase_raw.df.columns)
     dnase_avg = DnaseRegions(r"\\nerds5\compbio_storage\CRISPR.offtarget\dnase\average_pk.txt")
-    print dnase_avg.df.columns
+    print(dnase_avg.df.columns)
 
     for i in range(dnase_raw.df.columns.shape[0]):
         assert dnase_raw.df.columns[i] == dnase_avg.df.columns[i]

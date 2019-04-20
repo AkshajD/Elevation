@@ -1,5 +1,5 @@
 import numpy as np
-import settings
+from . import settings
 
 learn_options = {
     "V": "CD33",

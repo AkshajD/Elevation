@@ -11,7 +11,7 @@ import elevation.util
 from elevation.cmds.predict import Predict
 from elevation import aggregation
 from elevation import settings
-from command_base import Command
+from .command_base import Command
 from elevation import options
 
 
@@ -28,7 +28,7 @@ class Fixtures(Command):
 
         p = Predict()
         pred_calibrated = p.execute(wildtype, offtarget)
-        pred_calibrated_writable = {key: val.reshape(val.shape[0]) for key, val in pred_calibrated.iteritems()}
+        pred_calibrated_writable = {key: val.reshape(val.shape[0]) for key, val in pred_calibrated.items()}
         df = pd.DataFrame(data=pred_calibrated_writable)
 
         # write all for more extensive testing

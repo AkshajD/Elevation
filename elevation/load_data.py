@@ -74,7 +74,7 @@ def load_ben_guideseq(datdir=r'\\nerds5\compbio_storage\CRISPR.offtarget\ben_gui
     for pam, j in enumerate(ommitted_guide_pams):
         assert pam not in cctop_pams, "offtarget=%s, guide=%s shouldn't appear here" % (ommitted_guides.iloc[j]["30mer_mut"], ommitted_guides.iloc[j]["30mer"])
 
-    print "WARNING: have ommitted %d of guides from the actual guide-seq assay file" % data_left_only.shape[0]
+    print("WARNING: have ommitted %d of guides from the actual guide-seq assay file" % data_left_only.shape[0])
 
     data_right_merge = data.merge(guide_seq_full, how="right", on=["30mer", "30mer_mut"], indicator=True)
     data = data_right_merge
@@ -185,32 +185,32 @@ def load_HF_guideseq(learn_options):
 
 def load_cd33(learn_options={"left_right_guide_ind":[4,25,30]}):
 
-    if not learn_options.has_key("left_right_guide_ind"):
+    if "left_right_guide_ind" not in learn_options:
         learn_options["left_right_guide_ind"] = [4,25,30]
 
-    if not learn_options.has_key("pam_pos_filter"):
+    if "pam_pos_filter" not in learn_options:
         learn_options["pam_pos_filter"] = True
 
     save_cd33_file = "CD33.processed.%s.pamfilt%s.p" % (str(learn_options["left_right_guide_ind"]), str(learn_options["pam_pos_filter"]))
     save_cd33_file = settings.pj(settings.tmpdir, save_cd33_file)
 
     if False:#os.path.isfile(save_cd33_file):
-        print "loading processed data from file: %s..." % save_cd33_file
+        print("loading processed data from file: %s..." % save_cd33_file)
         [data] = pickle.load(open(save_cd33_file, "rb" ))
-        print "done."
+        print("done.")
     else:
-        print "reading and featurizing CD33 data..."
+        print("reading and featurizing CD33 data...")
 
         # this is a filtered version of the one below, but doesn't have the PAM rows we need
         # we only want to keep Mismatch from here
         data_file_filt = settings.pj(settings.offtarget_data_dir, 'CD33_data_postfilter.xlsx')
-        data_filt = pandas.read_excel(data_file_filt, index_col=[0], parse_cols=range(1,9))
+        data_filt = pandas.read_excel(data_file_filt, index_col=[0], parse_cols=list(range(1,9)))
         # it has some PAM and other rows, but lets remove them so no collisions with below
         data_filt = data_filt[data_filt['Category']=="Mismatch"]
 
         # this has the PAM info, for which we want to
         data_file_full = settings.pj(settings.offtarget_data_dir, 'STable 18 CD33_OffTargetdata.xlsx')
-        data_full = pandas.read_excel(data_file_full, index_col=[0], parse_cols=range(1,9))
+        data_full = pandas.read_excel(data_file_full, index_col=[0], parse_cols=list(range(1,9)))
         data_full = data_full[data_full['Category']=="PAM"]
         data_full = data_full[data_full['TranscriptID']=="ENST00000262262"]
         if learn_options["pam_pos_filter"]:
@@ -240,23 +240,23 @@ def load_cd33(learn_options={"left_right_guide_ind":[4,25,30]}):
         # want index to also be a regular column...
         data[data.index.name] = data.index
 
-        if learn_options.has_key("allowed_category") and learn_options["allowed_category"] is not None:
+        if "allowed_category" in learn_options and learn_options["allowed_category"] is not None:
             # e.g allowed_categories=["Deletion", "Insertion", "Mismatch", "PAM"]
             assert learn_options["allowed_category"] in data["Category"].values, "allowed category not found: %s" % learn_options["allowed_category"]
             data = data[data['Category']==learn_options["allowed_category"]]
 
         # get sequence context that we will need:
-        print "generating 30 and 32 mer sequences for 20mer guides and saving to file"
+        print("generating 30 and 32 mer sequences for 20mer guides and saving to file")
         thirtymer, thirtytwomer, thirtymer_mut = get_thirtymers_for_geneX(data)
-        data['30mer'] = map(str, thirtymer)
+        data['30mer'] = list(map(str, thirtymer))
         #data['32mer'] = map(str, thirtytwomer)
-        data['30mer_mut'] = map(str, thirtymer_mut)
+        data['30mer_mut'] = list(map(str, thirtymer_mut))
         #data.to_excel(pandas.ExcelWriter(data_file_aug), index=True)
 
         elevation.model_comparison.check_seq_len(data, colname='30mer')
         elevation.model_comparison.check_seq_len(data, colname="30mer_mut")
 
-        if learn_options.has_key('left_right_guide_ind') and learn_options['left_right_guide_ind'] is not None:
+        if 'left_right_guide_ind' in learn_options and learn_options['left_right_guide_ind'] is not None:
             if len(learn_options['left_right_guide_ind'])==2:
                 learn_options['left_right_guide_ind'].append(30) #default is 30mer
             all_len = data['30mer'].apply(len).values
@@ -282,7 +282,7 @@ def load_cd33(learn_options={"left_right_guide_ind":[4,25,30]}):
             keep_ind = (data['Category']==learn_options["allowed_category"])
             data = data[keep_ind]
 
-        print "Done."
+        print("Done.")
 
         #print "saving to file: %s" % save_cd33_file
         #pickle.dump([data], open(save_cd33_file, "wb" ))
@@ -296,14 +296,14 @@ def load_cd33(learn_options={"left_right_guide_ind":[4,25,30]}):
     data['Day21-ETP-binarized'] = (data['Day21-ETP'] > 1.0)*1.0
 
     # this must appear after the other code above otherwise it can get written over from the loading
-    if not learn_options.has_key("phen_transform"):
+    if "phen_transform" not in learn_options:
         learn_options["phen_transform"] = "identity"
 
     if learn_options["phen_transform"]=="rank_transform":
-        print "rank transforming target variable"
+        print("rank transforming target variable")
         data['Day21-ETP'] = azimuth.util.get_ranks(pandas.DataFrame(data['Day21-ETP']))[0]
     elif learn_options["phen_transform"]=="binarize":
-        print "binarizing target variable"
+        print("binarizing target variable")
         data['Day21-ETP'] = data['Day21-ETP'] > 1.0
     elif learn_options["phen_transform"]=="rescale":
         tmp_data = data['Day21-ETP'].copy().values
@@ -320,7 +320,7 @@ def load_cd33(learn_options={"left_right_guide_ind":[4,25,30]}):
     elif learn_options["phen_transform"]=='log':
         data['Day21-ETP'] = np.log(np.array(data['Day21-ETP'].values - np.array(data['Day21-ETP'].values.min())+1, dtype=float))
     elif learn_options["phen_transform"]=='Platt':
-        print "Platt scaling"
+        print("Platt scaling")
         dat = np.array(data['Day21-ETP'].values, dtype=float)
         dat_bin = (dat >= 1.)*1
         # clf = sklearn.linear_model.LogisticRegression()
@@ -387,7 +387,7 @@ def renormalize_guideseq(data):
     data_tmp = data.copy()
     data_tmp.loc[data_norm.index, 'GUIDE-SEQ Reads' ] = data_norm['GUIDE-SEQ Reads']
     data = data_tmp
-    print "Done."
+    print("Done.")
     return data
 
 def load_guideseq(learn_options):
@@ -415,11 +415,11 @@ def load_guideseq(learn_options):
 
     if False: #os.path.exists(pickle_file) and not learn_options['reload guideseq']:
         # import ipdb; ipdb.set_trace()
-        print "loading GuideSeq data from pickle..."
+        print("loading GuideSeq data from pickle...")
         [data] = pickle.load(open(pickle_file, "rb" ))
-        print "done."
+        print("done.")
     else:
-        print "reading GuideSeq data and saving to pickle..."
+        print("reading GuideSeq data and saving to pickle...")
         guide = settings.pj(settings.offtarget_data_dir, 'Supplementary Table 10.xlsx')
         #guide = '../../data/offtarget/GuideSeqValidationDataDontUseMoreThanOnce/Supplementary Table 10_replace_dup_w_largest_val.xlsx'
 
@@ -454,13 +454,13 @@ def load_guideseq(learn_options):
         # PAM filtering as Mudra (i.e. NRG), whereas if we only load the small file, we get all PAMs
         if True:#learn_options["guide_seq_full"]:
 
-            print "loading guidseq version", learn_options.get('guideseq_version', 1)
+            print("loading guidseq version", learn_options.get('guideseq_version', 1))
             if learn_options.get('guideseq_version', 1) == 1:
                 data_dir = settings.pj(settings.offtarget_data_dir, "guide_seq_comparison_from_Mudra")
 
                 guide_seq_file_base = "score_off_target_9guides_6mm_noperfectmatches"
                 guide_seq_file = guide_seq_file_base + ".txt"
-                print "reading guideseq_v1: %s" % os.path.join(data_dir, guide_seq_file)
+                print("reading guideseq_v1: %s" % os.path.join(data_dir, guide_seq_file))
                 guide_seq_full = pandas.read_table(os.path.join(data_dir, guide_seq_file), header=1, names=["30mer", "30mer_mut", "Num mismatches", "Mismatch position", "CFD", "CCTop", "HsuZhang"])
 
                 # CCTOP uses NRG PAMS, where R is in A or G
@@ -483,7 +483,7 @@ def load_guideseq(learn_options):
             elif learn_options.get('guideseq_version') == 2:
                 # columns: '30mer', 'mismatches', 'chromosome', 'start', 'end', 'gene', '30mer_mut', 'strand'
                 guide_seq_data = settings.pj(settings.CRISPR_dir, 'guideseq/guideseq_unique_MM6_end0_lim999999999.hdf5')
-                print "reading guideseq_v2: %s" % guide_seq_data
+                print("reading guideseq_v2: %s" % guide_seq_data)
                 guide_seq_full = pandas.read_hdf(guide_seq_data, 'allsites')
                 guide_seq_full = guide_seq_full.rename(index=str, columns={'mismatches': 'Num mismatches'})
 
@@ -533,7 +533,7 @@ def load_guideseq(learn_options):
                 # this is just for debugging and is not needed for final result
                 data_left_merge = data.merge(guide_seq_full, how="left", on=["30mer", "30mer_mut", "Num mismatches"], indicator=True)
                 data_left_only = data_left_merge[data_left_merge['_merge'] == "left_only"]
-                print "have ommitted %d of guides from guide-seq assay file" % data_left_only.shape[0]
+                print("have ommitted %d of guides from guide-seq assay file" % data_left_only.shape[0])
                 # this appears to be 42, with either version 1 or 2, 5/24/2017
 
                 data_right_merge = data.merge(guide_seq_full, how="right", on=["30mer", "30mer_mut", "Num mismatches"], indicator=True)
@@ -567,7 +567,7 @@ def load_guideseq(learn_options):
 
         data['Annotation'] = data.apply(lambda x : annot_from_seqs(x['30mer'], x['30mer_mut'], x['Num mismatches']), axis=1)
 
-        if learn_options.has_key("left_right_guide_ind") and learn_options["left_right_guide_ind"] is not None:
+        if "left_right_guide_ind" in learn_options and learn_options["left_right_guide_ind"] is not None:
             for colname in ['30mer', '30mer_mut']:
                 all_len = data[colname].apply(len).values
                 unique_len = np.unique(all_len)
@@ -589,7 +589,7 @@ def load_guideseq(learn_options):
         #raise Exception("if turn this back on, potentially need/want to do pam filtering only after this, whereas it is now above")
         data = renormalize_guideseq(data)
 
-    if not learn_options.has_key("kde_normalize_guideseq"): learn_options["kde_normalize_guideseq"] = False
+    if "kde_normalize_guideseq" not in learn_options: learn_options["kde_normalize_guideseq"] = False
     assert not learn_options["kde_normalize_guideseq"]
     # doesn't work (yet) and moreover, doesn't make a lot of sense, so abandoning, but leaving in case change mind
     #if learn_options["kde_normalize_guideseq"]:
@@ -644,12 +644,12 @@ def get_thirtymers_from_smallermer(smallmers, genes, categories, leftwinsize, ri
             gene_seq = gene_seq.reverse_complement()
             ind = gene_seq.find(guide_seq)
             if ind == -1:
-                print "WARNING: could not find guide in gene %s" % genes[i]
+                print("WARNING: could not find guide in gene %s" % genes[i])
                 found = False
             #assert ind != -1, "could not find guide in gene"
         if found:
             assert gene_seq[ind:(ind+len(guide_seq))]==guide_seq, "match not right"
-            print "found guide in gene %s" % genes[i]
+            print("found guide in gene %s" % genes[i])
             num_found += 1
             left_win = gene_seq[(ind - leftwinsize):ind]
             right_win = gene_seq[(ind + len(guide_seq)):(ind + len(guide_seq) + rightwinsize)]
@@ -730,7 +730,7 @@ def get_thirtymers_for_geneX(data, gene='CD33'):
 
         assert thirtymertmp[-5:-3] == "GG", "should be GG"
 
-        if (i % 100 ==0): print "done %d of %d" % (i, len(categories))
+        if (i % 100 ==0): print("done %d of %d" % (i, len(categories)))
     return thirtymer, thirtytwomer, thirtymer_mut
 
 def annot_from_seqs(guide, target, expectedNumMismatches=None, warn_not_stop=False):
@@ -779,7 +779,7 @@ def annot_from_seqs(guide, target, expectedNumMismatches=None, warn_not_stop=Fal
     if expectedNumMismatches is not None and not np.isnan(expectedNumMismatches):
         if warn_not_stop:
             if num_non_pam != expectedNumMismatches:
-                print "warning, wrong # for guide=%s, ot=%s, expected=%d, actual=%d" % (guide, target, expectedNumMismatches, num_non_pam)
+                print("warning, wrong # for guide=%s, ot=%s, expected=%d, actual=%d" % (guide, target, expectedNumMismatches, num_non_pam))
         else:
             assert num_non_pam == expectedNumMismatches
     return annot_list
@@ -817,11 +817,11 @@ def load_HsuZang_data(version="hsu-zhang-both"):
     for j, file_base in enumerate(file_list):
 
         if False:#os.path.isfile(file_base + ".p"):
-            print "loading processed data from file: %s..." % file_base + ".p"
+            print("loading processed data from file: %s..." % file_base + ".p")
             data = pickle.load(open(file_base + ".p", "rb" ))
-            print "done."
+            print("done.")
         else:
-            print "reading and featurizing Hsu-Zhang data..."
+            print("reading and featurizing Hsu-Zhang data...")
 
             data = pandas.read_excel(file_base + ".xlsx", index_col=[0], skiprows=3, sheetname=sheetnames[j], parse_cols=cols[j])
 
@@ -868,7 +868,7 @@ def load_HsuZang_data(version="hsu-zhang-both"):
             data["Annotation"] = annot
             data["Target gene"] = num_annot
 
-            print "Done. Now saving to file: %s" % file_base + ".p"
+            print("Done. Now saving to file: %s" % file_base + ".p")
             pickle.dump(data, open(file_base + ".p", "wb" ))
 
             all_data.append(data)
@@ -906,7 +906,7 @@ def load_HauesslerFig2(version):
         hdf5_data = pandas.read_hdf(hdf5_data_file, 'allsites')
 
         new_data = {
-            'otSeq': map(lambda x: x[0] + ',' + x[1], hdf5_data[['30mer', '30mer_mut']].values),
+            'otSeq': [x[0] + ',' + x[1] for x in hdf5_data[['30mer', '30mer_mut']].values],
             'gene': hdf5_data['gene'],
             'chromosome': hdf5_data['chromosome'],
             'start': hdf5_data['start'],
@@ -935,7 +935,7 @@ def load_HauesslerFig2(version):
         del final_df['otSeq_tmp']
         final_df = final_df.fillna(0)
         assert not final_df.isnull().any().any()
-        print org_df['readFraction'].sum(), final_df['readFraction'].sum()
+        print(org_df['readFraction'].sum(), final_df['readFraction'].sum())
         assert np.allclose(org_df['readFraction'].sum(), final_df['readFraction'].sum())
         return final_df
 
@@ -1027,13 +1027,13 @@ def load_mouse_data():
     file_base = settings.pj(settings.offtarget_data_dir, "MouseValidation/STable 20 H2D_H2K")
 
     if False: #os.path.isfile(file_base + ".p"):
-        print "loading processed data from file: %s..." % file_base + ".p"
+        print("loading processed data from file: %s..." % file_base + ".p")
         [data] = pickle.load(open(file_base + ".p", "rb" ))
-        print "done."
+        print("done.")
     else:
-        print "reading mouse data..."
+        print("reading mouse data...")
 
-        data = pandas.read_excel(file_base + ".xlsx", index_col=[5,6], parse_cols=range(0,11))
+        data = pandas.read_excel(file_base + ".xlsx", index_col=[5,6], parse_cols=list(range(0,11)))
         data["30mer"] = [ind[0] for ind in data.index]
         data["30mer_mut"] = [ind[1] for ind in data.index]
 
@@ -1059,7 +1059,7 @@ def load_mouse_data():
         data["Annotation"] = annot
         data["Target gene"] = num_annot
 
-        print "Done. Now saving to file: %s" % file_base + ".p"
+        print("Done. Now saving to file: %s" % file_base + ".p")
         pickle.dump([data], open(file_base + ".p", "wb" ))
 
     Y = pandas.DataFrame(data['H2-K LFC'], index=data.index)
@@ -1082,7 +1082,7 @@ def cdf(x, data, mypdf):
 def kde_cv_and_fit(data, bandwidth_range=np.linspace(0.01, 1, 100)):
     grid = sklearn.model_selection.GridSearchCV(kde.KernelDensity(kernel='gaussian', rtol=1e-7),{'bandwidth': bandwidth_range}, cv=10, refit=True)
     grid.fit(data[:, None])
-    print grid.best_params_
+    print(grid.best_params_)
     kd = grid.best_estimator_
     log_pdf = kd.score_samples(data[:, None])
     return np.exp(log_pdf), kd

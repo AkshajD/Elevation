@@ -22,18 +22,18 @@ class ElevationPrediction(Resource):
         args = parser.parse_args()
         wt = args['wildtype']
         mut = args['offtarget']
-        df = pandas.DataFrame(columns=['30mer', '30mer_mut', 'Annotation'], index=range(len(wt)))
+        df = pandas.DataFrame(columns=['30mer', '30mer_mut', 'Annotation'], index=list(range(len(wt))))
         df['30mer'] = wt
         df['30mer_mut'] = mut
         annot = []
         for i in range(len(wt)):
             annot.append(elevation.load_data.annot_from_seqs(wt[i], mut[i]))
         df['Annotation'] = annot
-        print "Time spent parsing input: ", time.time() - start
+        print("Time spent parsing input: ", time.time() - start)
 
         base_model_time = time.time()
         nb_pred, individual_mut_pred = elevation.prediction_pipeline.predict(base_model, df, learn_options)
-        print "Time spent in base model predict(): ", time.time() - base_model_time
+        print("Time spent in base model predict(): ", time.time() - base_model_time)
 
         stacker_time = time.time()
         pred = elevation.prediction_pipeline.stacked_predictions(df, individual_mut_pred, models=['linear-raw-stacker'],
@@ -42,8 +42,8 @@ class ElevationPrediction(Resource):
                                                                  prob_calibration_model=prob_calibration_model,
                                                                  learn_options=learn_options)['linear-raw-stacker']
         end = time.time()
-        print "Time spent in stacker predict(): ", end - stacker_time
-        print "Total time: ", end-start
+        print("Time spent in stacker predict(): ", end - stacker_time)
+        print("Total time: ", end-start)
 
         return {'elevation score': pred.tolist(), 'annotation': annot}
 

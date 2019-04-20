@@ -53,16 +53,16 @@ def compute_model(learn_options, cross_validate=False):
     results, all_learn_options = azmc.run_models(**options)
 
     if debug_base_model_predictions:
-        y_true = results.values()[0][1][0][0]['dummy_for_no_cv']['raw']
-        y_pred = results.values()[0][1][0][1]['dummy_for_no_cv']
+        y_true = list(results.values())[0][1][0][0]['dummy_for_no_cv']['raw']
+        y_pred = list(results.values())[0][1][0][1]['dummy_for_no_cv']
         plt.figure()
         plt.hexbin(y_true, y_pred)
         plt.xlabel('True')
         plt.ylabel('Predicted')
         import ipdb; ipdb.set_trace()
 
-    model = results.values()[0][3][0]
-    feature_names = np.array(results[results.keys()[0]][6], dtype=str)
+    model = list(results.values())[0][3][0]
+    feature_names = np.array(results[list(results.keys())[0]][6], dtype=str)
     return model, feature_names
 
 @memory.cache
@@ -114,7 +114,7 @@ def filter_PAMs_index(data, allowed_PAMs):
     for pam in not_allowed_PAMs_array:
         ind_pam_i = data['Annotation'].apply(lambda x: pam in x)
         ind[ind_pam_i] = False
-        print("Found %d PAMs %s. Dropping them." % (ind_pam_i.sum(), pam))
+        print(("Found %d PAMs %s. Dropping them." % (ind_pam_i.sum(), pam)))
 
     return ind
 
@@ -231,7 +231,7 @@ def predict_guideseq(model, data, learn_options, naive_bayes_combine=True):
 
 def generate_result_string(predictions, truth, fold, metric=sp.stats.spearmanr, name='Spearman r'):
     results_str = "Fold %d, %s: " % (fold+1, name)
-    for model in predictions.keys():
+    for model in list(predictions.keys()):
         if metric is azimuth.metrics.ndcg_at_k_ties:
             results_str += '%s=%.3f ' % (model, azimuth.metrics.ndcg_at_k_ties(truth[fold].flatten(), predictions[model][fold].flatten(), truth[fold].shape[0]))
         else:
@@ -287,7 +287,7 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
 
     if 'CFD' in models:
         # predicting
-        if 'cfd_table_file' not in learn_options.keys():
+        if 'cfd_table_file' not in list(learn_options.keys()):
             learn_options['cfd_table_file'] = settings.pj(settings.offtarget_data_dir, "STable 19 FractionActive_dlfc_lookup.xlsx")
 
         cfd = elevation.models.CFDModel(cfd_table_file=learn_options['cfd_table_file'])
@@ -355,7 +355,7 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
         # Xtest = np.log(Xtest)
         # Xtest = np.prod(Xtest, axis=1)[:, None]
 
-        if ('use_mut_distances' in learn_options.keys() and learn_options['use_mut_distances']):
+        if ('use_mut_distances' in list(learn_options.keys()) and learn_options['use_mut_distances']):
             guideseq_data = elevation.features.extract_mut_positions_stats(guideseq_data)
             X_dist = guideseq_data[['mut mean abs distance', 'mut min abs distance', 'mut max abs distance', 'mut sum abs distance',
                                     'mean consecutive mut distance', 'min consecutive mut distance', 'max consecutive mut distance',
@@ -367,7 +367,7 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
             Xtest = np.concatenate((Xtest, Xtest_dist), axis=1)
 
 
-        if 'azimuth_score_in_stacker' in learn_options.keys() and learn_options['azimuth_score_in_stacker']:
+        if 'azimuth_score_in_stacker' in list(learn_options.keys()) and learn_options['azimuth_score_in_stacker']:
             azimuth_score = elevation.model_comparison.get_on_target_predictions(guideseq_data, ['WT'])[0]
             X = np.concatenate((X, azimuth_score[:, None]), axis=1)
 
@@ -376,7 +376,7 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
 
         if 'linear-raw-stacker' in models:
 
-            dnase_type = [key for key in learn_options.keys() if 'dnase' in key]
+            dnase_type = [key for key in list(learn_options.keys()) if 'dnase' in key]
             assert len(dnase_type) <= 1
             if len(dnase_type) == 1:
                 dnase_type = dnase_type[0]
@@ -529,13 +529,13 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
                                 np.sum(Xtest, axis=1)[:, None],
                                 Xtest), axis=1)
 
-        K = GPy.kern.RBF(1, active_dims=[0]) + GPy.kern.RBF(1, active_dims=[1]) + GPy.kern.Linear(1, active_dims=[2]) + GPy.kern.RBF(D_base_predictions, active_dims=range(3, D_base_predictions+3))
+        K = GPy.kern.RBF(1, active_dims=[0]) + GPy.kern.RBF(1, active_dims=[1]) + GPy.kern.Linear(1, active_dims=[2]) + GPy.kern.RBF(D_base_predictions, active_dims=list(range(3, D_base_predictions+3)))
         m = GPy.models.GPRegression(X, np.log(y), kernel=K)
         m.optimize_restarts(5, messages=0)
         predictions['raw GP'] = m.predict(Xtest)[0]
 
     if 'combine' in models:
-        predictions['combine'] = np.ones_like(predictions[predictions.keys()[0]])
+        predictions['combine'] = np.ones_like(predictions[list(predictions.keys())[0]])
 
         for c_model in models:
             if c_model != 'combine':
@@ -572,12 +572,12 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
         res_str = "Spearman r: "
         for m in models:
             res_str += "%s=%.3f " % (m, sp.stats.spearmanr(truth, predictions[m])[0])
-        print res_str
+        print(res_str)
 
         res_str = "NDCG: "
         for m in models:
             res_str += "%s=%.3f " % (m, azimuth.metrics.ndcg_at_k_ties(truth.values.flatten(), predictions[m].flatten(), truth.shape[0]))
-        print res_str
+        print(res_str)
 
     if return_model:
         if return_residuals:
@@ -630,8 +630,8 @@ def cross_validate_guideseq(data, preds_base_model, learn_options, models=['prod
         for model in pred_all_models:
             predictions[model][fold] = pred_all_models[model]
 
-        print generate_result_string(predictions, truth, fold)
-        print generate_result_string(predictions, truth, fold, metric=azimuth.metrics.ndcg_at_k_ties, name='NDCG k ties')
+        print(generate_result_string(predictions, truth, fold))
+        print(generate_result_string(predictions, truth, fold, metric=azimuth.metrics.ndcg_at_k_ties, name='NDCG k ties'))
         for model in models:
             # sr =  sp.stats.spearmanr(predictions[model][fold], truth[fold])[0]
             sr = azimuth.metrics.ndcg_at_k_ties(truth[fold].flatten(), predictions[model][fold].flatten(), truth[fold].shape[0])
@@ -644,7 +644,7 @@ def cross_validate_guideseq(data, preds_base_model, learn_options, models=['prod
     for model in models:
         final_results_str += '%s=%.3f ' % (model, performance.T[model].median())
 
-    print final_results_str
+    print(final_results_str)
 
     return predictions, performance, mismatches, truth, concatenated_predictions, all_test_ind
 
@@ -702,7 +702,7 @@ def find_b(truth, pred, mism):
         predictions.extend(preds.tolist())
         all_truth.extend(truth[test].tolist())
         base_pred.extend(pred[test].tolist())
-        print best_beta, sp.stats.spearmanr(predictions, all_truth)[0]
+        print(best_beta, sp.stats.spearmanr(predictions, all_truth)[0])
 
     return sp.stats.spearmanr(predictions, all_truth), sp.stats.spearmanr(base_pred, all_truth)
 
@@ -839,7 +839,7 @@ def guideseq_zero_experiment(data, models=['CFD', 'HsuZhang'], learn_options=Non
 
     for perc_zero in settings:
         selected = np.concatenate((nonzero, np.random.permutation(zero)[:int(len(zero)*perc_zero)]))
-        print len(selected)
+        print(len(selected))
         pred_all_models = stacked_predictions(data.iloc[selected], None, # test data
                                               preds_guideseq=None,  guideseq_data=None,
                                               models=models, learn_options=learn_options)
@@ -855,7 +855,7 @@ def plot_ndcg_at_k(predictions, truth, K=np.linspace(100, 30000, 100), normalize
     else:
         truth_all = truth
     plt.figure()
-    for m in predictions.keys():
+    for m in list(predictions.keys()):
         if flatten:
             all_pred = np.concatenate(predictions[m]).flatten()
         else:
@@ -864,7 +864,7 @@ def plot_ndcg_at_k(predictions, truth, K=np.linspace(100, 30000, 100), normalize
         vals = []
         for k in K:
             vals.append(azimuth.metrics.ndcg_at_k_ties(truth_all.copy(), all_pred.copy(), k, method=method, normalize_from_below_too=normalize_from_below_too))
-        print method, vals
+        print(method, vals)
         plt.plot(K, vals, '.-', label=m)
     plt.legend(loc=0)
 
@@ -878,7 +878,7 @@ def plot_AUC_at_k(predictions, truth, K=np.linspace(100, 30000, 100), flatten=Tr
         truth_all = truth.flatten()
 
     plt.figure()
-    for method in predictions.keys():
+    for method in list(predictions.keys()):
         if flatten:
             all_pred = np.concatenate(predictions[method]).flatten()
         else:
@@ -888,7 +888,7 @@ def plot_AUC_at_k(predictions, truth, K=np.linspace(100, 30000, 100), flatten=Tr
         for k in K:
             top_k = np.argsort(truth_all)[::-1][:k]
             vals.append(computeDoench_AUC(truth_all[top_k].copy(), all_pred[top_k].copy())[0])
-        print method, vals
+        print(method, vals)
         plt.plot(K, vals, '.-', label=method)
 
     plt.xlabel('Top n values (sorted by truth)')
@@ -898,7 +898,7 @@ def plot_AUC_at_k(predictions, truth, K=np.linspace(100, 30000, 100), flatten=Tr
 
 def Haeussler_ROC(predictions, truth):
     plt.figure()
-    for model in predictions.keys():
+    for model in list(predictions.keys()):
         fpr, tpr, thresholds = roc_curve(truth.flatten(), predictions[model].flatten())
         model_auc = auc(fpr, tpr)
         plt.plot(fpr, tpr, label=model + " AUC=%.3f" % model_auc)
@@ -910,7 +910,7 @@ def plot_ndcg_by_mismatches(predictions, truth, mismatches, concatenate=True):
         mism_all = np.concatenate(mismatches).flatten()
     plt.figure()
     mismatch_range = [2, 3, 4, 5, 6]
-    for model in predictions.keys():
+    for model in list(predictions.keys()):
         model_results = []
         if concatenate:
             preds = np.concatenate(predictions[model]).flatten()
@@ -927,8 +927,8 @@ def plot_spearman_with_different_weights(predictions, truth, weights, figsize=(1
     effective_sample_sizes = np.nan*np.zeros(len(weights))
     import elevation.metrics
 
-    for model in predictions.keys():
-        print model
+    for model in list(predictions.keys()):
+        print(model)
         model_results = []
 
         for i, w in enumerate(weights):
@@ -957,7 +957,7 @@ def plot_spearman_with_different_weights(predictions, truth, weights, figsize=(1
 # JL 5/24/2017 --I have double checked that this yields the same results as the non-parallelized version
 def plot_spearman_with_different_weights_parallel(predictions, truth, weights,
                                          figsize=(6, 5), plot=True, num_procs=None):
-    from util import execute_parallel
+    from .util import execute_parallel
     import elevation.metrics
 
     effective_sample_sizes = np.nan*np.zeros(len(weights))
@@ -966,8 +966,8 @@ def plot_spearman_with_different_weights_parallel(predictions, truth, weights,
         plt.figure(figsize=figsize)
     all_results = {}
 
-    for model in predictions.keys():
-        print model
+    for model in list(predictions.keys()):
+        print(model)
         farg_pairs = []
         for i, w in enumerate(weights):
             weights_array = truth.copy()
@@ -1006,7 +1006,7 @@ def plot_ndcg_with_different_discounts(predictions, truth, concatenate=False, th
 
     plt.figure()
     all_results = {}
-    for model in predictions.keys():
+    for model in list(predictions.keys()):
         model_results = []
         if concatenate:
             preds = np.concatenate(predictions[model]).flatten()
@@ -1026,15 +1026,15 @@ def plot_ndcg_with_different_discounts(predictions, truth, concatenate=False, th
     return all_results, thetas
 
 def average_ndcg_across_folds(predictions, truth, thetas=np.logspace(np.log10(0.01), np.log10(1.0), 10)):
-    results = dict([(m, np.zeros((len(thetas), len(truth)))) for m in predictions.keys()])
+    results = dict([(m, np.zeros((len(thetas), len(truth)))) for m in list(predictions.keys())])
 
     for fold in range(len(truth)):
         ndcg_i, thetas = plot_ndcg_with_different_discounts(predictions, truth, thetas=thetas, item=fold, concatenate=False)
-        for m in ndcg_i.keys():
+        for m in list(ndcg_i.keys()):
             results[m][:, fold] = ndcg_i[m]
 
     plt.figure()
-    for m in ndcg_i.keys():
+    for m in list(ndcg_i.keys()):
         plt.errorbar(thetas, results[m].mean(1), 'o-', label=m)
     plt.legend(loc=0)
 
@@ -1127,13 +1127,13 @@ if __name__ == '__main__':
 
 
     if False:
-        print "generating guideseq base model predictions to pickle"
+        print("generating guideseq base model predictions to pickle")
         preds_guideseq = predict_guideseq(base_model, guideseq_data, learn_options,  naive_bayes_combine=True)
         with open('guideseq_all_zeros_pred_cd33Hsu.pickle', 'wb') as f:
             pickle.dump([preds_guideseq, learn_options], f)
         import ipdb; ipdb.set_trace()
     else:
-        print "loading guideseq base model predictions from pickle"
+        print("loading guideseq base model predictions from pickle")
         with open('guideseq_all_zeros_pred.pickle', 'rb') as f:
             preds_guideseq, learn_options_p = pickle.load(f)
 
@@ -1175,7 +1175,7 @@ if __name__ == '__main__':
                                                                                                          learn_options,
         models= ['CFD','HsuZhang', 'CCTOP', 'product', 'linear-raw-stacker'], n_folds=5)
         # all_results, thetas = plot_ndcg_with_different_discounts(predictions, truth, concatenate=True)
-        predictions_flat = dict([(k, np.concatenate(predictions[k]).flatten()) for k in predictions.keys()])
+        predictions_flat = dict([(k, np.concatenate(predictions[k]).flatten()) for k in list(predictions.keys())])
         truth_all = np.concatenate(truth).flatten()
         # K = np.linspace(100, guideseq_data.shape[0], 10)
         # plot_AUC_at_k(predictions, truth, K=K)
