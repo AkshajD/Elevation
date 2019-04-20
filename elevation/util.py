@@ -44,6 +44,7 @@ def get_or_compute(file, fargpair, force_compute=False):
     except (pickle.UnpicklingError, UnicodeDecodeError) as e:
         warn("Failed to load pickle: %s" % file)
         warn("Recomputing. This may take a while...")
+        # TODO: Prompt for confirmation because re-compute can take a long time.
 
     # Call the passed function with argument.
     sys.stderr.write("Computing model..")
