@@ -45,6 +45,8 @@ def get_or_compute(file, fargpair, force_compute=False):
         warn("Failed to load pickle: %s" % file)
         warn("Recomputing. This may take a while...")
 
+    # Call the passed function with argument.
+    sys.stderr.write("Computing model..")
     result = fargpair[0](*fargpair[1])
     with open(file, 'wb') as f:
         pickle.dump(result, f)
