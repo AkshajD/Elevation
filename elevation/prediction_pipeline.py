@@ -13,7 +13,7 @@ import scipy as sp
 import scipy.stats
 import elevation.models
 import elevation.features
-#import GPy
+
 import socket
 from elevation.stacker import *
 import elevation.util as ut
