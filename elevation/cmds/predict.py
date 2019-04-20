@@ -21,8 +21,6 @@ from elevation import options
 class Predict(Command):
 
     def __init__(self, learn_options_override=None, init_models=True):
-        # np.random.seed(123)
-
         self.learn_options = options.learn_options
 
         if isinstance(learn_options_override, dict):
