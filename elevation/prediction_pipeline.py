@@ -4,7 +4,7 @@ import azimuth
 import joblib
 import logging
 
-# Provides `setup_elevation`, `set_target_elevation`, (Azimuth model_comparison) `azmc.run_models`
+# Provides `predict_elevation`, `setup_elevation`, `set_target_elevation`, (Azimuth model_comparison) `azmc.run_models`
 from elevation.model_comparison import *
 
 import copy
