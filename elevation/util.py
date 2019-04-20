@@ -35,12 +35,14 @@ def get_or_compute(file, fargpair, force_compute=False):
         if os.path.exists(file) and not force_compute:
             sys.stderr.write("util.py:get_or_compute() using pickle: " + file + os.linesep)
             with open(file, 'rb') as f:
-                return pickle.load(f)
+                if sys.version_info.major == 3:
+                  return pickle.load(f, encoding='latin1')
+                else:
+                  return pickle.load(f)
         else:
-            sys.stderr.write("util.py:get_or_compute() recomputing, not using pickle: " + file + os.linesep)
-    except pickle.UnpicklingError as e:
-        # TODO: catch pickle failure error
-        warn("Failed to load %s" % file)
+            sys.stderr.write("util.py:get_or_compute() force_compute or no pickle: " + file + os.linesep)
+    except (pickle.UnpicklingError, UnicodeDecodeError) as e:
+        warn("Failed to load pickle: %s" % file)
         warn("Recomputing. This may take a while...")
 
     result = fargpair[0](*fargpair[1])
