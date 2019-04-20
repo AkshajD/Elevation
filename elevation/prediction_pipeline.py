@@ -3,7 +3,6 @@ import pandas
 import azimuth
 import joblib
 import logging
-from joblib import Memory
 
 # Provides `setup_elevation`, `set_target_elevation`, (Azimuth model_comparison) `azmc.run_models`
 from elevation.model_comparison import *
@@ -28,7 +27,7 @@ import sklearn.preprocessing
 from sklearn.metrics import auc, roc_curve
 
 # FIXME: DeprecationWarning: The 'cachedir' parameter has been deprecated in version 0.12 and will be removed in version 0.14.  You provided "cachedir='/scratch/elevation/cache'", use "location='/scratch/elevation/cache'" instead.
-memory = Memory(cachedir=settings.cachedir, verbose=0)
+memory = joblib.Memory(cachedir=settings.cachedir, verbose=0)
 debug_base_model_predictions = False
 logging.info("prediction_pipeline loaded.")
 
