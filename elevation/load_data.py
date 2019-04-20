@@ -8,7 +8,7 @@ import pandas
 import numpy as np
 import scipy as sp
 import sklearn.neighbors.kde as kde
-import sklearn.grid_search as gs
+import sklearn.model_selection
 import sklearn.linear_model
 import Bio.SeqUtils as SeqUtil
 import Bio.Seq as Seq
@@ -1080,7 +1080,7 @@ def cdf(x, data, mypdf):
     return res
 
 def kde_cv_and_fit(data, bandwidth_range=np.linspace(0.01, 1, 100)):
-    grid = gs.GridSearchCV(kde.KernelDensity(kernel='gaussian', rtol=1e-7),{'bandwidth': bandwidth_range}, cv=10, refit=True)
+    grid = sklearn.model_selection.GridSearchCV(kde.KernelDensity(kernel='gaussian', rtol=1e-7),{'bandwidth': bandwidth_range}, cv=10, refit=True)
     grid.fit(data[:, None])
     print grid.best_params_
     kd = grid.best_estimator_

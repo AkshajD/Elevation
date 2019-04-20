@@ -10,8 +10,6 @@ from elevation.model_comparison import *
 
 import copy
 import scipy.stats as ss
-from sklearn.grid_search import ParameterGrid
-import sklearn.linear_model
 import scipy as sp
 import scipy.stats
 import elevation.models
@@ -20,13 +18,14 @@ import elevation.features
 import socket
 from elevation.stacker import *
 import elevation.util as ut
-from sklearn.metrics import auc, roc_curve
 from elevation import settings
+
+import sklearn.model_selection
+import sklearn.linear_model
 import sklearn.isotonic
-from sklearn.cross_validation import StratifiedKFold
 import sklearn.pipeline
 import sklearn.preprocessing
-
+from sklearn.metrics import auc, roc_curve
 
 # FIXME: DeprecationWarning: The 'cachedir' parameter has been deprecated in version 0.12 and will be removed in version 0.14.  You provided "cachedir='/scratch/elevation/cache'", use "location='/scratch/elevation/cache'" instead.
 memory = Memory(cachedir=settings.cachedir, verbose=0)
@@ -445,8 +444,8 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
                 # now using this:
                 num_fold = 10
 
-                kfold = StratifiedKFold(y[ind_keep].flatten()==0, num_fold, random_state=learn_options['seed'])
-                #kfold2 = StratifiedKFold(y[ind_keep2].flatten()==0, num_fold, random_state=learn_options['seed'])
+                kfold = sklearn.model_selection.StratifiedKFold(y[ind_keep].flatten()==0, num_fold, random_state=learn_options['seed'])
+                #kfold2 = sklearn.model_selection.StratifiedKFold(y[ind_keep2].flatten()==0, num_fold, random_state=learn_options['seed'])
 
                 clf = sklearn.linear_model.LassoCV(cv=kfold, fit_intercept=True, normalize=(~normX),n_jobs=num_fold, random_state=learn_options['seed'])
                 #clf2 = sklearn.linear_model.LassoCV(cv=kfold2, fit_intercept=True, normalize=(~normX),n_jobs=num_fold, random_state=learn_options['seed'])
@@ -608,7 +607,7 @@ def cross_validate_guideseq(data, preds_base_model, learn_options, models=['prod
     # this extract the #mismatch classes for stratification
     label_encoder = sklearn.preprocessing.LabelEncoder()
     cv_classes = label_encoder.fit_transform(data['GUIDE-SEQ Reads'].values != 0)
-    cv = sklearn.cross_validation.StratifiedKFold(cv_classes, n_folds=n_folds, shuffle=True)
+    cv = sklearn.model_selection.StratifiedKFold(cv_classes, n_folds=n_folds, shuffle=True)
 
     data = elevation.features.extract_mut_positions_stats(data)
     y = data['GUIDE-SEQ Reads'].values[:, None]
