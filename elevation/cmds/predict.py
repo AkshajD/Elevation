@@ -40,6 +40,9 @@ class Predict(Command):
         self.hmg_data = None
         self.hmg_preds = None
 
+        # FIXME:
+        #   If init_models=False, then the Predictor has no model and nothing works.
+        #   It should train one instead.
         if init_models:
             start = time.time()
             self.base_model = self.get_base_model()
