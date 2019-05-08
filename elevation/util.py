@@ -21,12 +21,10 @@ def get_pairwise_distance_mudra(r):
 def get_gene_sequence(gene_name):
     try:
         gene_file = settings.seq_dir_template.format(gene_name=gene_name)
-        with open(gene_file, 'rb') as f:
-            seq = f.read()
-            seq = seq.replace('\r', '')
-            seq = seq.replace('\n', '')
-    except:
-        raise Exception("could not find gene sequence file %s, please see examples and generate one for your gene as needed, with this filename" % gene_file)
+        with open(gene_file) as f:
+            seq = "".join([line.strip() for line in f.readlines()])
+    except Exception as e:
+        raise Exception("Could not process gene sequence file %s, please see examples and generate one for your gene as needed, with this filename" % gene_file)
     return seq
 
 

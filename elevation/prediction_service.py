@@ -36,13 +36,16 @@ class ElevationPrediction(Resource):
         print("Time spent in base model predict(): ", time.time() - base_model_time)
 
         stacker_time = time.time()
-        pred = elevation.prediction_pipeline.stacked_predictions(df, individual_mut_pred, models=['linear-raw-stacker'],
-                                                                 guideseq_data=guideseq_data, preds_guideseq=preds_guideseq,
+        pred = elevation.prediction_pipeline.stacked_predictions(df,
+                                                                 individual_mut_pred,
+                                                                 models=['linear-raw-stacker'],
+                                                                 guideseq_data=guideseq_data,
+                                                                 preds_guideseq=preds_guideseq,
                                                                  use_mut_distances=False,
                                                                  prob_calibration_model=prob_calibration_model,
                                                                  learn_options=learn_options)['linear-raw-stacker']
         end = time.time()
-        print("Time spent in stacker predict(): ", end - stacker_time)
+        print("Time spent in stacked_predictions(): ", end - stacker_time)
         print("Total time: ", end-start)
 
         return {'elevation score': pred.tolist(), 'annotation': annot}

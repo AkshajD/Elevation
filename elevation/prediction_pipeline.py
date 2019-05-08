@@ -8,6 +8,7 @@ import logging
 from elevation.model_comparison import *
 
 import copy
+import numpy as np
 import scipy.stats as ss
 import scipy as sp
 import scipy.stats
@@ -263,9 +264,19 @@ def normalizeX(X, strength, feature="product"):
     return X
 
 
-def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'constant-power', 'linear-raw-stacker', 'linreg-stacker', 'RF-stacker', 'GP-stacker', 'raw GP'],
-                        truth=None, guideseq_data=None, preds_guideseq=None, prob_calibration_model=None, learn_options=None, return_model=False, trained_model=None,
-                        models_to_calibrate=None, return_residuals=False):#, dnase_train=None, dnase_test=None):
+# guideseq_data is `pandas.core.frame.DataFrame`
+def stacked_predictions(data,
+                        preds_base_model,
+                        preds_guideseq=None,
+                        guideseq_data=None,
+                        models=['product', 'CFD', 'constant-power', 'linear-raw-stacker', 'linreg-stacker', 'RF-stacker', 'GP-stacker', 'raw GP'],
+                        truth=None,
+                        prob_calibration_model=None,
+                        learn_options=None,
+                        return_model=False,
+                        trained_model=None,
+                        models_to_calibrate=None,
+                        return_residuals=False):#, dnase_train=None, dnase_test=None):
 
     predictions = dict([(m, None) for m in models])
 
@@ -275,6 +286,7 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
     data = elevation.features.extract_mut_positions_stats(data)
 
     if guideseq_data is not None:
+        # y is `numpy.ndarray`
         y = guideseq_data['GUIDE-SEQ Reads'].values[:, None]
         num_annot = np.array([len(t) for t in guideseq_data["Annotation"].values])
 
@@ -443,24 +455,44 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
                 # now using this:
                 num_fold = 10
 
-                kfold = sklearn.model_selection.StratifiedKFold(y[ind_keep].flatten()==0, num_fold, random_state=learn_options['seed'])
+                # y is 'numpy.ndarray'
+                # sklearn.cross_validation.StratifiedKFold(y, n_folds=3, indices=None, shuffle=False, random_state=None)
+                # kfold = sklearn.model_selection.StratifiedKFold(y[ind_keep].flatten()==0, num_fold, random_state=learn_options['seed'])
+
+                # 0.20.3 --
+                #   - removed `y[ind_keep].flatten()==0`, now done with `.split()` in the LassoCV arguments
+                #   - FIXME: Not sure random_state is required
+                kfold = sklearn.model_selection.StratifiedKFold(num_fold, random_state=learn_options['seed'])
+
                 #kfold2 = sklearn.model_selection.StratifiedKFold(y[ind_keep2].flatten()==0, num_fold, random_state=learn_options['seed'])
 
-                clf = sklearn.linear_model.LassoCV(cv=kfold, fit_intercept=True, normalize=(~normX),n_jobs=num_fold, random_state=learn_options['seed'])
+                # clf = sklearn.linear_model.LassoCV(cv=kfold, fit_intercept=True, normalize=(~normX),n_jobs=num_fold, random_state=learn_options['seed'])
+                # 0.20.3 --
+                #   - removed `fit_intercept=True` (it is the default)
+                #   - changed `n_jobs=-1` == "use all CPUs", don't assume 10
+                #   - `normalize=(~normalize)` changed to True for clarity, since (~True) and (~False) are, -2 and -1 ==> both True
+                # ipdb.set_trace()
+
+                # target_variable = 0
+                target_variable = y[ind_keep].flatten()==0
+
+                #   - FIXME: Not sure random_state is required
+                clf = sklearn.linear_model.LassoCV(cv=kfold.split(X, target_variable), normalize=True, n_jobs=-1, random_state=learn_options['seed'])
+
                 #clf2 = sklearn.linear_model.LassoCV(cv=kfold2, fit_intercept=True, normalize=(~normX),n_jobs=num_fold, random_state=learn_options['seed'])
 
                 if normX:
                     clf = sklearn.pipeline.Pipeline([['scaling', sklearn.preprocessing.StandardScaler()], ['lasso', clf]])
                     #clf2 = sklearn.pipeline.Pipeline([['scaling', sklearn.preprocessing.StandardScaler()], ['lasso', clf2]])
 
-                #y_transf = st.boxcox(y[ind_keep] - y[ind_keep].min() + 0.001)[0]
+                #y_transf = ss.boxcox(y[ind_keep] - y[ind_keep].min() + 0.001)[0]
 
                 # scale to be between 0 and 1 first
                 y_new = (y - np.min(y)) / (np.max(y) - np.min(y))
                 #plt.figure(); plt.plot(y_new[ind_keep], '.');
-                y_transf = st.boxcox(y_new[ind_keep] - y_new[ind_keep].min() + 0.001)[0]
+                y_transf = ss.boxcox(y_new[ind_keep] - y_new[ind_keep].min() + 0.001)[0]
 
-                # when we do renormalize, we konw that these values are mostly negative (see Teams on 6/27/2017),
+                # when we do renormalize, we know that these values are mostly negative (see Teams on 6/27/2017),
                 # so lets just make them go entirely negative(?)
                 #y_transf = y_transf - np.max(y_transf)
 
@@ -472,11 +504,15 @@ def stacked_predictions(data, preds_base_model, models=['product', 'CFD', 'const
                 #y_transf = y[ind_keep]
 
                 # debugging
-                #y_transf2 = st.boxcox(y[ind_keep2] - y[ind_keep2].min() + 0.001)[0]
+                #y_transf2 = ss.boxcox(y[ind_keep2] - y[ind_keep2].min() + 0.001)[0]
                 #y_transf2 = y[ind_keep2]
 
                 sys.stderr.write("train data set size is N=%d" % len(y_transf) + os.linesep)
-                clf.fit(X[ind_keep], y_transf)
+                try:
+                    clf.fit(X[ind_keep], y_transf)
+                except Exception as e:
+                    import ipdb; ipdb.set_trace()
+
                 #clf2.fit(X[ind_keep2], y_transf2)
                 #clf.fit(X_keep, tmpy)
 
@@ -620,9 +656,12 @@ def cross_validate_guideseq(data, preds_base_model, learn_options, models=['prod
         test_ind[test] = True
         all_test_ind.extend(test.tolist())
 
-        pred_all_models = stacked_predictions(data[test_ind], preds_base_model[test_ind], # test data
-                                              preds_guideseq=preds_base_model[train_ind],  guideseq_data=data[train_ind], #train data
-                                              models=models, learn_options=learn_options)
+        pred_all_models = stacked_predictions(data[test_ind],
+                                              preds_base_model[test_ind], # test data
+                                              preds_guideseq=preds_base_model[train_ind],
+                                              guideseq_data=data[train_ind], #train data
+                                              models=models,
+                                              learn_options=learn_options)
 
         truth[fold] = y[test]
         mismatches[fold] = num_annot[test][:, None]
@@ -804,14 +843,15 @@ def train_prob_calibration_model(cd33_data, guideseq_data, preds_guideseq, base_
     #     calibration_models = None
 
     # get linear-raw-stacker (or other model==which_model) predictions, including training of that model if appropriate (e.g. linear-raw-stacker)
-    X_guideseq, clf_stacker_model, feature_names_stacker_model = stacked_predictions(cd33_data, individual_mut_pred_cd33,
-                                     models=[which_stacker_model],
-                                     guideseq_data=guideseq_data,
-                                     preds_guideseq=preds_guideseq,
-                                     learn_options=learn_options,
-                                     models_to_calibrate=None,
-                                     prob_calibration_model=None,
-                                     return_model=True)
+    X_guideseq, clf_stacker_model, feature_names_stacker_model = stacked_predictions(cd33_data,
+                                                                                     individual_mut_pred_cd33,
+                                                                                     models=[which_stacker_model],
+                                                                                     guideseq_data=guideseq_data,
+                                                                                     preds_guideseq=preds_guideseq,
+                                                                                     prob_calibration_model=None,
+                                                                                     learn_options=learn_options,
+                                                                                     return_model=True,
+                                                                                     models_to_calibrate=None)
     X_guideseq = X_guideseq[which_stacker_model]
 
     clf = sklearn.linear_model.LogisticRegression(fit_intercept=True, solver='lbfgs')

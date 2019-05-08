@@ -687,7 +687,8 @@ def get_thirtymers_for_geneX(data, gene='CD33'):
     thirtymer = []
     thirtytwomer = []
     thirtymer_mut = []
-    gene_seq = Seq.Seq(elevation.util.get_gene_sequence(gene)).reverse_complement()
+    seq = elevation.util.get_gene_sequence(gene)
+    gene_seq = Seq.Seq(seq).reverse_complement()
     categories = data['Category']
     for i, twentymer in enumerate(data['WTSequence'].values):
         guide_seq = Seq.Seq(twentymer)

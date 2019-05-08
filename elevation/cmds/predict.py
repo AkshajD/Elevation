@@ -49,7 +49,7 @@ class Predict(Command):
             self.guideseq_data = self.get_guideseq_data()
             self.preds_guideseq = self.get_preds_guideseq()
             self.cd33_data = self.get_cd33()
-            self.calibration_models = self.get_calibrated()
+            self.calibration_models = self.get_calibrated(True, True)
             pickle_time = time.time() - start
             sys.stderr.write("Time spent loading pickles: " + str(pickle_time) + os.linesep)
 
@@ -151,12 +151,17 @@ class Predict(Command):
         cd33_data['Annotation'] = cd33_data['Annotation'].apply(lambda x: [x])
         return cd33_data
 
-    def get_calibrated(self, force_compute=False):
+    def get_calibrated(self, force_compute=False, save_models=False):
         calibration_models = elevation.util.get_or_compute(
             elevation.settings.calibration_file,
             (self.generate_calibrated, ()),
             force_compute=force_compute
         )
+
+        if (save_models):
+            print("Pickling calibration_models.")
+            pickle.dump(calibration_models, open(elevation.settings.calibration_file + ".new", "wb"))
+
         return calibration_models
 
     def generate_models(self):
@@ -173,8 +178,12 @@ class Predict(Command):
         to_be_calibrated = ['linear-raw-stacker']
         calibration_models = {}
         for m in to_be_calibrated:
-            calibration_models[m] = pp.train_prob_calibration_model(self.cd33_data, self.guideseq_data, self.preds_guideseq,
-                                                                    self.base_model, self.learn_options, which_stacker_model=m,
+            calibration_models[m] = pp.train_prob_calibration_model(self.cd33_data,
+                                                                    self.guideseq_data,
+                                                                    self.preds_guideseq,
+                                                                    self.base_model,
+                                                                    self.learn_options,
+                                                                    which_stacker_model=m,
                                                                     other_calibration_models=calibration_models)
         return calibration_models
 

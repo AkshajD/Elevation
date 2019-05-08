@@ -41,7 +41,12 @@ roc_data = elevation.load_data.load_HauesslerFig2(1)[0]
 # wildTypes = list(roc_data['30mer'])[:num_x]
 # offTargets = list(roc_data['30mer_mut'])[:num_x]
 
-data = sys.stdin.read()
+# FIXME: After reading, change STDIN to the terminal so that pdb.set_trace() works.
+# data = sys.stdin.read()
+
+with open(sys.argv[1]) as f:
+    data = f.read().strip()
+
 items = json.loads(data)
 num_x = len(items)
 wildTypes = [ item['wildType'] for item in items ]

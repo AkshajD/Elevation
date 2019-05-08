@@ -697,6 +697,9 @@ def predict_elevation(data=None,
     pool.join()
 
     all_predictions = None
+    # FIXME: Fix this initialization so that if the `enumerate(jobs)` loop does not execute,
+    #        then the `all_predictions_ind.tolist()` call doesn't error with:
+    #           AttributeError: 'NoneType' object has no attribute 'tolist'
     all_predictions_ind = None
     feature_names = None
 
