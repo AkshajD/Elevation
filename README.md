@@ -29,58 +29,9 @@ activities for the end-to-end design of CRISPR guide RNAs.**](https://doi.org/10
 
 ### Download and process data dependencies
 
-1. First, download and process necessary public data files using the
-   `CRISPR/download_data.sh` script (on Windows, you can run similar
-   commands by hand to the wget commands in the script, or run the
-   script using Bash on Windows/Cygwin/etc).
+1. Follow the instructions in the [`elevation-data`](https://github.com/richardkmichael/elevation-data) repository.
 
-   After running the script, your directory structure should look like:
-
-```
-elevation/
-    CRISPR/
-        data/
-            offtarget/
-                Haeussler/
-                CD33_data_postfilter.xlsx
-                nbt.3117-S2.xlsx
-                STable 18 CD33_OffTargetdata.xlsx*
-                STable 19 FractionActive_dlfc_lookup.xlsx*
-                Supplementary Table 10.xlsx
-        gene_sequences/
-            CD33_sequence.txt
-        guideseq/
-            guideseq.py
-            guideseq_unique.txt
-    cache/
-    CHANGELOG.md
-    elevation/
-    ...
-```
-
-2. One additional data file must be generated via a genome search,
-   using our Elevation-search (aka "dsNickFury") software, which
-   must be installed separately. The repository is located at
-   `https://github.com/michael-weinstein/dsNickFury3PlusOrchid`.
-
-   **Note:** If you are not planning to run a genome search for off-targets,
-   you do **not** need to follow the instructions in the dsNickFury
-   documentation for data dependencies. Here are the steps to follow:
-
-   * Download and unzip the hg38 index (linked in the dsNickFury README) into `dsNickFury/dsNickFury3PlusOrchid`
-   * Install anaconda2 into `dsNickFury/dependencies`
-   * Use anaconda2 to create a Python 3 environment (e.g. `dsNickFury/dependencies/anaconda2/bin/conda create -n dsNickFury python==3`)
-   * Edit the `dsNickFury/dsNickFury3PlusOrchid/settings.py` file so that network_root points to the directory containing dsNickFury, and anaconda_root points to the location of the anaconda2 install
-   * Edit the `CRISPR/guideseq/guideseq.py` file so that DSNF_DIRECTORY points to the `dsNickFury/dsNickFury3PlusOrchid` directory
-
-   At this point, you should be able to run `CRISPR/guideseq/guideseq.py`. (This will take some time
-   to run; ~8 hours on a desktop)
-
-   Once the script finishes, there should be a file called
-   `guideseq_unique_MM6_end0_lim999999999.hdf5` in the `CRISPR/guideseq`
-   directory.
-
-3. Your directory structure should now look something like this:
+Afterward, the directory structure should look like:
 
 ```
 elevation/
@@ -99,14 +50,13 @@ elevation/
             guideseq.py
             guideseq_unique.txt
             guideseq_unique_MM6_end0_lim999999999.hdf5
-            ...
     cache/
     CHANGELOG.md
     elevation/
     ...
 ```
 
-   You can now install the elevation dependencies and run the software.
+You can now install the elevation dependencies and run the software.
 
 ### Install / Develop
 
