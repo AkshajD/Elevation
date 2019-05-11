@@ -23,11 +23,32 @@ activities for the end-to-end design of CRISPR guide RNAs.**](https://doi.org/10
 
 ## Dependencies
 
-### Software dependencies
+### Install Python and dependencies
 
-1. Install Anaconda >= 4.1.1: `https://www.continuum.io/downloads`
+1. Install Python 2.7
 
-### Download and process data dependencies
+On Windows, use [`pyenv-win`](https://github.com/pyenv-win/pyenv-win).
+On Unix and macOS, use [`pyenv`](https://github.com/pyenv/pyenv).
+
+```
+  pyenv install 2.7.16
+```
+
+2. Activate Python in the shell and create a virtual environment.
+
+```
+  pyenv local 2.7.16
+  virtualenv v
+  source v/bin/activate
+```
+
+3. Install the dependencies.
+
+```
+  pip install -r requirements.txt
+```
+
+### Install data dependencies
 
 1. Follow the instructions in the [`elevation-data`](https://github.com/richardkmichael/elevation-data) repository.
 
@@ -58,21 +79,6 @@ elevation/
 
 You can now install the elevation dependencies and run the software.
 
-### Install / Develop
-
-1. Create conda env for elevation: `conda create -n elevation python=2.7`
-2. Activate conda env:
-    * (windows) `activate elevation`
-    * (linux) `source activate elevation`
-3. Install Azimuth version 2.0.0: `pip install git+https://github.com/MicrosoftResearch/Azimuth.git`
-4. Overwrite some of the Azimuth dependencies, since Elevation uses different versions:
-    * `conda install pytables`
-    * `conda install scikit-learn==0.18.1`
-    * `pip install pandas==0.19.1`
-   (installing these packages via conda/pip avoids recompiling them from source)
-4. Install/Develop elevation:
-    * To install, `python setup.py install`
-    * To develop, `python setup.py develop`
 
 ### Test installation
 
