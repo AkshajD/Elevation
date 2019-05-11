@@ -201,6 +201,11 @@ class Stacker(object):
         return loss_val
 
     def maximize(self):
+        # FIXME: Anaconda removed, so this may be broken because it uses an
+        #        Anaconda-specific package. Replace with a normal package.
+        #        Possibly: https://pypi.org/project/bayesopt/
+        #
+        # Uses: https://anaconda.org/creditx/bayes_opt
         from bayes_opt import BayesianOptimization
 
         contour=None
