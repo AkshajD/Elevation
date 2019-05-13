@@ -86,9 +86,12 @@ elevation/
 ### Test installation
 
 Make sure everything is set up properly by running the following command from
-the root directory of the repository.
+the root directory of the repository.  If a test fails, running again with `-s` can
+be helpful to see the output.
 
-`python -m pytest tests` or `nosetests tests`
+```
+  python -m pytest tests
+```
 
 ## Use
 
