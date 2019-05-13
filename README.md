@@ -77,8 +77,11 @@ elevation/
     ...
 ```
 
-You can now install the elevation dependencies and run the software.
+2. Decompress the pickled prepared data and models, these are used if not re-training a model.
 
+```
+  xz -kd tmp/*.pkl.xz
+```
 
 ### Test installation
 
