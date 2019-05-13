@@ -160,12 +160,9 @@ Models are persisted as pickle files and, under certain circumstances,
 may need to be recomputed. Elevation models depend on the CRISPR repository.
 To recompute models, run the following command.
 
-```shell
-elevation-fit --crispr_repo_dir /home/melih/dev/CRISPR
 ```
-
-where `/home/melih/dev/CRISPR` corresponds to the directory that contains the
-CRISPR repository you'd like to use to recompute the models.
+  elevation-fit --crispr_repo_dir /path/to/elevation/CRISPR
+```
 
 ### New Fixtures
 
