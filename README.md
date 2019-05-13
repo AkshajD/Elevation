@@ -62,8 +62,8 @@ elevation/
                 Haeussler/
                 CD33_data_postfilter.xlsx
                 nbt.3117-S2.xlsx
-                STable 18 CD33_OffTargetdata.xlsx*
-                STable 19 FractionActive_dlfc_lookup.xlsx*
+                STable 18 CD33_OffTargetdata.xlsx
+                STable 19 FractionActive_dlfc_lookup.xlsx
                 Supplementary Table 10.xlsx
         gene_sequences/
             CD33_sequence.txt
@@ -173,6 +173,7 @@ Run `python -m pytest tests` to make sure tests are still passing.
 If you'd like to reconfigure the default location of CRISPR, the temp dir in
 which pickles are stored, etc., copy `elevation/settings_template.py` to
 `elevation/settings.py` and edit `elevation/settings.py` before installation.
+
 If `elevation/settings.py` does not exist at install time, then
 `elevation/settings_template.py` is used to create `elevation/settings.py`.
 
