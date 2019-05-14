@@ -95,6 +95,17 @@ be helpful to see the output.
 
 ## Use
 
+The following example code is available in a [Jupyter notebook](/notebooks/README_Example.ipynb).
+
+The Jupyter notebook is not at the top-level directory with Elevation, so the `PYTHONPATH` will need
+to be adjusted for the Elevation modules to import.  Adjusting the `PYTHONPATH` can be done on the
+command line, as below; or in the notebook itself by adding to `sys.path`.
+
+```
+  pip install jupyter
+  PYTHONPATH=.. jupyter notebook notebooks
+```
+
 ### Guide Sequence Prediction
 
 ```python
