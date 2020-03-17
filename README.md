@@ -27,6 +27,8 @@ activities for the end-to-end design of CRISPR guide RNAs.**](https://doi.org/10
 
 1. Install Python 2.7
 
+Latest Python 2.7.x is acceptable, the example below uses `2.7.16`.
+
 On Windows, use [`pyenv-win`](https://github.com/pyenv-win/pyenv-win).
 On Unix and macOS, use [`pyenv`](https://github.com/pyenv/pyenv).
 
@@ -34,12 +36,16 @@ On Unix and macOS, use [`pyenv`](https://github.com/pyenv/pyenv).
   pyenv install 2.7.16
 ```
 
-2. Activate Python in the shell and create a virtual environment.
+2. Activate Python in the shell, install `virtualenv` and create a virtual
+   environment.  Branches other than `master` may use Python 3, so it is helpful
+   to name the virtual environment according to the python version.
 
 ```
   pyenv local 2.7.16
-  virtualenv v
-  source v/bin/activate
+  pip install --upgrade pip # Optional
+  pip install virtualenv
+  virtualenv 2
+  source 2/bin/activate
 ```
 
 3. Install the dependencies.
