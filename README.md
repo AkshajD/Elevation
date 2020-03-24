@@ -170,6 +170,12 @@ result = aggregation.get_aggregated_score(preds['linear-raw-stacker'],
 print result
 ```
 
+### Web service
+
+An Flask-based HTTP web service is provided in `elevation/prediction_service.py`. Start it with
+`python prediction_service.py`, and test it with: `curl -d wildtype=GAACACAAAGCATAGACTGCCGG -d
+offtarget=GAACACAAAGCATAGACTGCTGG http://127.0.0.1:5000/elevation`.
+
 ### Recomputing Models
 
 Models are persisted as pickle files and, under certain circumstances,
