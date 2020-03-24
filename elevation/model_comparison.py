@@ -226,12 +226,24 @@ def one_hot_annotation_decoupled(data, feature_sets, option_vals, pam_pos=21):
                 annot[n, letters.index(a)+1] = 1.0
                 annot[n, 0] = pam_pos
 
-    if "let" in option_vals and "pos" in option_vals:
-        feature_sets['annot_decoupled'] = pandas.DataFrame(annot, columns=['pos'] + letters, index=data.index)
-    elif "let" in option_vals:
-        feature_sets['annot_decoupled'] = pandas.DataFrame(annot[:, 1:annot.shape[1]], columns=letters, index=data.index)
-    elif "pos" in option_vals:
-        feature_sets['annot_decoupled'] = pandas.DataFrame(annot[:,0], columns=['pos'], index=data.index)
+    # FIXME:
+    #
+    # In several places in the code, e.g., `prediction_pipeline.py` line 738 (grep for others),
+    # `annotation_decoupled_onehot` is `True` which causes this code to be called by the
+    # featurization code on line 590.  However, the value cannot be True, or "truthy", it must be an
+    # iterable (ideally wants an array of "let", "pos" and/or "transl").
+    #
+    # For now, rescue and do nothing; but the calling code or the learn options should be fixed.
+    try:
+        if "let" in option_vals and "pos" in option_vals:
+            feature_sets['annot_decoupled'] = pandas.DataFrame(annot, columns=['pos'] + letters, index=data.index)
+        elif "let" in option_vals:
+            feature_sets['annot_decoupled'] = pandas.DataFrame(annot[:, 1:annot.shape[1]], columns=letters, index=data.index)
+        elif "pos" in option_vals:
+            feature_sets['annot_decoupled'] = pandas.DataFrame(annot[:,0], columns=['pos'], index=data.index)
+    except TypeError as e:
+        pass
+        # import pdb; pdb.set_trace();
 
     if 'transl' in option_vals:
         transl = pandas.DataFrame(transl_transv, columns=['wobble_trans', 'nonwobble_trans', 'translation'], index=data.index)
