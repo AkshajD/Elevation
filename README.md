@@ -163,11 +163,10 @@ with open(settings.agg_model_file) as fh:
 
 # compute aggregated score
 isgenic = np.zeros(num_x, dtype=np.bool)
-result = aggregation.get_aggregated_score(
-         preds['linear-raw-stacker'],
-         preds['CFD'],
-         isgenic,
-         final_model)
+result = aggregation.get_aggregated_score(preds['linear-raw-stacker'],
+                                          preds['CFD'],
+                                          isgenic,
+                                          final_model)
 print result
 ```
 
@@ -200,4 +199,4 @@ If `elevation/settings.py` does not exist at install time, then
 ## Contacting us
 
 You can submit bug reports using the GitHub issue tracker. If you have any
-other questions, please contact us at crispr@lists.research.microsoft.com.
+other questions, please contact us at `crispr@lists.research.microsoft.com`.
