@@ -1,22 +1,21 @@
+import io
 import os
 import sys
-import io
 import time
+
 import numpy as np
+import pandas as pd
 
 from command_base import Command
 from elevation import settings
+from elevation import options
 
-import pandas as pd
 import elevation
 import elevation.load_data
 import elevation.util
 import elevation.prediction_pipeline as pp
 import matplotlib.pyplot as plt
 import scipy.stats as st
-import pickle
-
-from elevation import options
 
 class Predict(Command):
 
