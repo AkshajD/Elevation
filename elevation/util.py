@@ -30,6 +30,14 @@ def get_gene_sequence(gene_name):
     return seq
 
 
+# FIXME:
+#   Add `pandas=true`?
+#
+#   Pickled pandas DataFrames should be handled with pandas itself for forward/backward
+#   compatibility with pandas; i.e. p.read_pickle() / p.to_pickle().
+#
+#   Or, how to sniff pickle file contents so that we can detect a DataFrame as content and avoid
+#   passing a flag?
 def get_or_compute(file, fargpair, force_compute=False):
     try:
         if os.path.exists(file) and not force_compute:
