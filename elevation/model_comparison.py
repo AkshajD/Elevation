@@ -631,7 +631,18 @@ def featurize_data_elevation(data, learn_options, verbose=False):
     return feature_sets, data
 
 
-def predict_elevation(data=None, wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAAGCAGCCAGGACAGCAGT','AAAGCAGCCAGGACAGCAGT','AAAGCAGCCAGGACAGCAGT']), mutation_details=np.array(['TGG', 'G:A,7', 'I:C,2', 'D:G,7']), category=None, model=None, model_file=None, pam_audit=False, learn_options_override=None, force_zero_intercept=False, naive_bayes_combine=True, verbose=False, parallel_block_size=10000):
+def predict_elevation(data=None,
+                      wt_seq30=np.array(['TGTCGTAGTAGGGTATGGGA', 'AAAGCAGCCAGGACAGCAGT','AAAGCAGCCAGGACAGCAGT','AAAGCAGCCAGGACAGCAGT']),
+                      mutation_details=np.array(['TGG', 'G:A,7', 'I:C,2', 'D:G,7']),
+                      category=None,
+                      model=None, # Must be a tuple of (model, learn_options)
+                      model_file=None,
+                      pam_audit=False,
+                      learn_options_override=None,
+                      force_zero_intercept=False,
+                      naive_bayes_combine=True,
+                      verbose=False,
+                      parallel_block_size=10000):
     """
     if pam_audit==False, then it will not check for GG in the expected position
     this is useful if predicting on PAM mismatches, such as with off-target
