@@ -204,13 +204,13 @@ def load_cd33(learn_options={"left_right_guide_ind":[4,25,30]}):
         # this is a filtered version of the one below, but doesn't have the PAM rows we need
         # we only want to keep Mismatch from here
         data_file_filt = settings.pj(settings.offtarget_data_dir, 'CD33_data_postfilter.xlsx')
-        data_filt = pandas.read_excel(data_file_filt, index_col=[0], parse_cols=range(1,9))
+        data_filt = pandas.read_excel(data_file_filt, index_col=[0], usecols=range(1,9))
         # it has some PAM and other rows, but lets remove them so no collisions with below
         data_filt = data_filt[data_filt['Category']=="Mismatch"]
 
         # this has the PAM info, for which we want to
         data_file_full = settings.pj(settings.offtarget_data_dir, 'STable 18 CD33_OffTargetdata.xlsx')
-        data_full = pandas.read_excel(data_file_full, index_col=[0], parse_cols=range(1,9))
+        data_full = pandas.read_excel(data_file_full, index_col=[0], usecols=range(1,9))
         data_full = data_full[data_full['Category']=="PAM"]
         data_full = data_full[data_full['TranscriptID']=="ENST00000262262"]
         if learn_options["pam_pos_filter"]:
