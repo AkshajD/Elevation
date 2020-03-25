@@ -737,7 +737,7 @@ def annot_from_seqs(guide, target, expectedNumMismatches=None, warn_not_stop=Fal
     """
     Assumes that guide and target sequences start at 20 nucleotides away from the PAM,
     i.e. p1, ... p20, N, G, G.  If there are no non-NGG PAM, one can give only a 20-mer,
-    otherwise one shoudl give a 23mer, possibly with an "N" in position 21 which woul be ignored
+    otherwise one should give a 23mer, possibly with an "N" in position 21 which will be ignored.
 
     Note that by python indexing, this means index 0-19 inclusive contain non-PAM sequence, and
     index 20-22 inclusive are the NGG
